@@ -1,67 +1,100 @@
 #include "ChessPiece.hpp"
 
-void Pawn::move()
+int ChessPiece::enPassant = 0;
+
+set<int> Pawn::getMoves(map<int,unique_ptr<ChessPiece>> &board)
 {
-    
+    // **************** Still need to implement updating en passant every move ****************
+
+    cout << "In Pawn getMoves and the pawn that was called is at position: " << this->position << endl;
+    // set<int> possibleMoves = {1,2,3,4,5,6,7,9,10};
+    int turn;
+    (color == WHITE) ? turn = 1 : turn = -1;
+    set<int> possibleMoves;
+    map<int,unique_ptr<ChessPiece>>::iterator selectedPiece = board.end();
+    // cout << "Pawn position is at: " << position << endl;
+    // pawn push
+    selectedPiece = board.find(position + (8 * turn));
+    if (selectedPiece == board.end()) {
+        possibleMoves.insert(position + (8 * turn));
+        selectedPiece = board.find(position + (16 * turn));
+        bool pawnsFirstMove = ((position >= 9 && position <= 16 && color == WHITE) || 
+                               (position >= 49 && position <= 56 && color == BLACK));
+        if (selectedPiece == board.end() && pawnsFirstMove) {
+            // cout << "Found two move pawn at square: " << position << endl;
+            possibleMoves.insert(position + (16 * turn));
+            // cout << "Inserted move: " << position + (16 * turn) << endl;
+            // this->setEnPassant(position + (16 * turn));
+        }
+    }
+
+    // Check diagonal captures and en passant
+    if (position % 8 != 1) { // Not on column a
+        if (this->canPawnTakeDiag(board, RIGHT) || this->canPawnTakeEnPassant(board)) {
+            possibleMoves.insert(position + (9 * turn));
+        }
+    }
+    if (position % 8 != 0) { // Not on column h
+        if (this->canPawnTakeDiag(board, LEFT) || this->canPawnTakeEnPassant(board)) {
+            possibleMoves.insert(position + (7 * turn));
+        }
+    }
+
+    return possibleMoves;
 }
 
-void Rook::move()
+bool Pawn::canPawnTakeDiag(map<int,unique_ptr<ChessPiece>> &board, Direction diagonal) {
+    int move, turn;
+    (diagonal == LEFT) ? move = 7 : move = 9;
+    (color == WHITE) ? turn = 1 : turn = -1;
+    map<int,unique_ptr<ChessPiece>>::iterator selectedPiece = board.end();
+
+    selectedPiece = board.find(position + (move * turn));
+    if (selectedPiece != board.end() && selectedPiece->second->getColor() != color && 
+        selectedPiece->second->getPiece() != "King") {
+        cout << "In Pawn canPawnTakeDiag: " << this->position << endl;
+        return true;
+    }
+
+    return false;
+}
+
+bool Pawn::canPawnTakeEnPassant(map<int,unique_ptr<ChessPiece>> &board) {
+    int turn;
+    (color == WHITE) ? turn = 1 : turn = -1;
+    map<int,unique_ptr<ChessPiece>>::iterator selectedPiece = board.end();
+
+    selectedPiece = board.find(position + turn);
+    if (selectedPiece != board.end() && selectedPiece->second->getColor() != color && 
+        selectedPiece->second->getPiece() == "Pawn" && selectedPiece->second->getEnPassant() == (position + turn)) {
+        cout << "In Pawn canPawnTakeEnPassant: " << this->position << endl;
+        return true;
+    }
+
+    return false;
+}
+
+set<int> Rook::getMoves(map<int,unique_ptr<ChessPiece>> &board)
 {
-    
+    return set<int>();
 }
 
-void Knight::move()
+set<int> Knight::getMoves(map<int,unique_ptr<ChessPiece>> &board)
 {
-    
+    return set<int>();
 }
 
-void Bishop::move()
+set<int> Bishop::getMoves(map<int,unique_ptr<ChessPiece>> &board)
 {
-    
+    return set<int>();
 }
 
-void Queen::move()
+set<int> Queen::getMoves(map<int,unique_ptr<ChessPiece>> &board)
 {
-    
+    return set<int>();
 }
 
-void King::move()
+set<int> King::getMoves(map<int,unique_ptr<ChessPiece>> &board)
 {
-    
-}
-
-ostream& Pawn::printPiece() {
-    ostream& os = cout;
-    os << "Pawn:";
-    return os;
-}
-
-ostream& Rook::printPiece() {
-    ostream& os = cout;
-    os << "Rook:";
-    return os;
-}
-
-ostream& Knight::printPiece() {
-    ostream& os = cout;
-    os << "Knight:";
-    return os;
-}
-
-ostream& Bishop::printPiece() {
-    ostream& os = cout;
-    os << "Bishop:";
-    return os;
-}
-
-ostream& Queen::printPiece() {
-    ostream& os = cout;
-    os << "Queen:";
-    return os;
-}
-
-ostream& King::printPiece() {
-    ostream& os = cout;
-    os << "King:";
-    return os;
+    return set<int>();
 }
