@@ -38,7 +38,7 @@ public:
     set<int> getMoves(map<int,unique_ptr<ChessPiece>> &board) override;
 private:
     bool canPawnTakeDiag(map<int,unique_ptr<ChessPiece>> &board, Direction diagonal);
-    bool canPawnTakeEnPassant(map<int,unique_ptr<ChessPiece>> &board);
+    bool canPawnTakeEnPassant(map<int,unique_ptr<ChessPiece>> &board, Direction side);
 };
 
 class Rook : public ChessPiece {

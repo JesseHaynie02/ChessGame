@@ -82,10 +82,10 @@ bool ChessBoard::movePiece(string move, Color color) {
 
     if (isPieceTake) {
         // remove take in order to make finding piece easier (implement further)
-        cout << "Take occurs" << endl;
+        // cout << "Take occurs" << endl;
         move.erase(move.find('x'), 1);
     }
-    cout << "After take new string: " << move << endl;
+    // cout << "After take new string: " << move << endl;
 
     // prolly can just combine this if case
     if (move == "O-O") {
@@ -101,18 +101,44 @@ bool ChessBoard::movePiece(string move, Color color) {
     // int selectedPiece = 0;
     board.begin();
     if (isMoveOnGrid) {
+        // cout << "move is on grid" << endl;
         selectedPiece = findPiece(move, color);
         squareToMoveTo = board.find(grid.at(locOfMove));
         if (selectedPiece != board.end()) {
-            // move piece
-            if (selectedPiece->second->getPiece() == "Pawn" && isPieceTake && squareToMoveTo == board.end()) { // take en passant
-                cout << "identified en passant take" << endl;
-                // implement taking pawn
-                // ******* STOPPED HERE 7/16/2024 *******
+            // cout << "piece detected" << endl;
+            if (isPieceTake) {
+                // delete piece
+                // cout << "in piece take" << endl;
+                if (selectedPiece->second->getPiece() == "Pawn" && squareToMoveTo == board.end()) {
+                    PieceIterator pawnToTake = board.end();
+                    pawnToTake = board.find(grid.at(locOfMove) - (8 * (color ? 1 : -1)));
+                    if (pawnToTake != board.end() && selectedPiece->second->getEnPassant() == pawnToTake->second->getPosition()) {
+                        // cout << "deleting en passant take" << endl;
+                        board.erase(pawnToTake);
+                    }
+                } else {
+                    board.erase(squareToMoveTo);
+                }
             }
+            // move piece
             checkEnPassant(selectedPiece, grid.at(locOfMove));
+            string piece = selectedPiece->second->getPiece();
+            if (piece == "Pawn") {
+                board.insert(pair<int,unique_ptr<ChessPiece>>(grid.at(locOfMove), make_unique<Pawn>(grid.at(locOfMove), selectedPiece->second->getValue(), color)));
+            } else if (piece == "Rook") {
+                board.insert(pair<int,unique_ptr<ChessPiece>>(grid.at(locOfMove), make_unique<Rook>(grid.at(locOfMove), selectedPiece->second->getValue(), color)));
+            } else if (piece == "Knight") {
+                board.insert(pair<int,unique_ptr<ChessPiece>>(grid.at(locOfMove), make_unique<Knight>(grid.at(locOfMove), selectedPiece->second->getValue(), color)));
+            } else if (piece == "Bishop") {
+                board.insert(pair<int,unique_ptr<ChessPiece>>(grid.at(locOfMove), make_unique<Bishop>(grid.at(locOfMove), selectedPiece->second->getValue(), color)));
+            } else if (piece == "Queen") {
+                board.insert(pair<int,unique_ptr<ChessPiece>>(grid.at(locOfMove), make_unique<Queen>(grid.at(locOfMove), selectedPiece->second->getValue(), color)));
+            } else if (piece == "King") {
+                board.insert(pair<int,unique_ptr<ChessPiece>>(grid.at(locOfMove), make_unique<King>(grid.at(locOfMove), selectedPiece->second->getValue(), color)));
+            }
+            board.erase(selectedPiece);
+            return true;
         }
-        return true;
     }
 
     // bool isPawnTake = islower(move[0]) && chessColumns.find(move[0]) != chessColumns.end() && move[1] == 'x';
@@ -146,12 +172,14 @@ bool ChessBoard::movePiece(string move, Color color) {
 
 // will need to implement when two rooks or knights can access same square (implemented not tested)
 PieceIterator ChessBoard::findPiece(string move, Color color) {
+    set<char> chessColumns {'a','b','c','d','e','f','g'};
     set<int> possibleMoves;
     string locOfMove = move.substr(move.size() - 2, 2);
     PieceIterator selectedPiece = board.end();
 
     for (PieceIterator piece = board.begin(); piece != board.end(); ++piece) {
-        bool isCorrectPiece = (move[0] == piece->second->getPiece()[0]) || (move[0] == 'N' && piece->second->getPiece() == "Knight");
+        bool isCorrectPiece = (chessColumns.find(move[0]) != chessColumns.end()) || (move[0] == piece->second->getPiece()[0]) || 
+                              (move[0] == 'N' && piece->second->getPiece() == "Knight");
         if (piece->second->getColor() == color) {
             possibleMoves.clear();
             possibleMoves = piece->second->getMoves(board);
@@ -160,7 +188,7 @@ PieceIterator ChessBoard::findPiece(string move, Color color) {
             //     cout << moves << " ";
             // }
             // cout << endl;
-            cout << "determining if move is in set of possibleMoves" << endl;
+            // cout << "determining if move is in set of possibleMoves" << endl;
             if (possibleMoves.find(grid.at(locOfMove)) != possibleMoves.end()) {
                 if (move.size() == 2) {
                     selectedPiece = piece;
@@ -212,10 +240,10 @@ void ChessBoard::checkEnPassant(PieceIterator selectedPiece, int squareToMoveTo)
     bool pawnsFirstMove = ((position >= 9 && position <= 16 && color == WHITE) || (position >= 49 && position <= 56 && color == BLACK));
     bool pawnDoublePush = ((squareToMoveTo >= 25 && squareToMoveTo <= 32) || (squareToMoveTo >= 33 && squareToMoveTo <= 40));
     if (pawnsFirstMove && pawnDoublePush) {
-        cout << "setEnPassant enabled" << endl;
-        selectedPiece->second->setEnPassant(position);
+        // cout << "setEnPassant enabled" << endl;
+        selectedPiece->second->setEnPassant(squareToMoveTo);
     } else {
-        cout << "setEnPassant disabled" << endl;
+        // cout << "setEnPassant disabled" << endl;
         selectedPiece->second->setEnPassant(0);
     }
 }

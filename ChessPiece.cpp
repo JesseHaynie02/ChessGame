@@ -6,7 +6,7 @@ set<int> Pawn::getMoves(map<int,unique_ptr<ChessPiece>> &board)
 {
     // **************** Still need to implement updating en passant every move ****************
 
-    cout << "In Pawn getMoves and the pawn that was called is at position: " << this->position << endl;
+    // cout << "Pawn in getMoves at position: " << this->position << " ";
     // set<int> possibleMoves = {1,2,3,4,5,6,7,9,10};
     int turn;
     (color == WHITE) ? turn = 1 : turn = -1;
@@ -30,12 +30,12 @@ set<int> Pawn::getMoves(map<int,unique_ptr<ChessPiece>> &board)
 
     // Check diagonal captures and en passant
     if (position % 8 != 1) { // Not on column a
-        if (this->canPawnTakeDiag(board, RIGHT) || this->canPawnTakeEnPassant(board)) {
+        if (this->canPawnTakeDiag(board, RIGHT) || this->canPawnTakeEnPassant(board, RIGHT)) {
             possibleMoves.insert(position + (9 * turn));
         }
     }
     if (position % 8 != 0) { // Not on column h
-        if (this->canPawnTakeDiag(board, LEFT) || this->canPawnTakeEnPassant(board)) {
+        if (this->canPawnTakeDiag(board, LEFT) || this->canPawnTakeEnPassant(board, LEFT)) {
             possibleMoves.insert(position + (7 * turn));
         }
     }
@@ -52,22 +52,25 @@ bool Pawn::canPawnTakeDiag(map<int,unique_ptr<ChessPiece>> &board, Direction dia
     selectedPiece = board.find(position + (move * turn));
     if (selectedPiece != board.end() && selectedPiece->second->getColor() != color && 
         selectedPiece->second->getPiece() != "King") {
-        cout << "In Pawn canPawnTakeDiag: " << this->position << endl;
+        // cout << "In Pawn canPawnTakeDiag: " << this->position << endl;
         return true;
     }
 
     return false;
 }
 
-bool Pawn::canPawnTakeEnPassant(map<int,unique_ptr<ChessPiece>> &board) {
+bool Pawn::canPawnTakeEnPassant(map<int,unique_ptr<ChessPiece>> &board, Direction side) {
     int turn;
-    (color == WHITE) ? turn = 1 : turn = -1;
+    (side == LEFT) ? turn = 1 : turn = -1;
     map<int,unique_ptr<ChessPiece>>::iterator selectedPiece = board.end();
 
     selectedPiece = board.find(position + turn);
+    // cout << "In canPawnTakeEnPassant looking at square: " << position + turn << endl;
+    // cout << selectedPiece->second->getEnPassant() << " and " << (position + turn) << endl;
+    // selectedPiece->second->getEnPassant() == (position + turn)
     if (selectedPiece != board.end() && selectedPiece->second->getColor() != color && 
         selectedPiece->second->getPiece() == "Pawn" && selectedPiece->second->getEnPassant() == (position + turn)) {
-        cout << "In Pawn canPawnTakeEnPassant: " << this->position << endl;
+        // cout << "In Pawn canPawnTakeEnPassant: " << this->position << endl;
         return true;
     }
 

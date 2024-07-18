@@ -9,10 +9,11 @@ int main() {
 
     while (!board.getGameOver()) {
         // get move
+        board.printPieces();
         string move = getNextMove(refTurn);
 
         // determine if move is valid
-        cout << "move = " << move << endl;
+        // cout << "move = " << move << endl;
         if (!board.movePiece(move, turn)) {
             cout << "Please enter a valid move" << endl;
             continue;
