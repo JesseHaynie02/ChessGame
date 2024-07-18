@@ -7,6 +7,5 @@
 #include "ChessBoard.hpp"
 
 string getNextMove(Color& color);
-// bool isMoveValid(ChessBoard &board, string move, Color color);
 
 #endif

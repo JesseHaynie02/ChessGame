@@ -25,7 +25,7 @@ public:
 private:
     PieceIterator findPiece(string move, Color color);
     void checkEnPassant(PieceIterator, int);
-    // bool moveCausesCheck(string move, Color color);
+    bool moveCausesCheck(int originalLocOfPiece, int newLocOfPiece, int pieceTakenLoc, string pieceMoved, string pieceTaken, Color color);
 
     bool game_over;
     // string currEnPassant;

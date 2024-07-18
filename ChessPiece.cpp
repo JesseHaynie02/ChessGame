@@ -6,7 +6,7 @@ set<int> Pawn::getMoves(map<int,unique_ptr<ChessPiece>> &board)
 {
     // **************** Still need to implement updating en passant every move ****************
 
-    // cout << "Pawn in getMoves at position: " << this->position << " ";
+    cout << "Pawn in getMoves at position: " << this->position << " ";
     // set<int> possibleMoves = {1,2,3,4,5,6,7,9,10};
     int turn;
     (color == WHITE) ? turn = 1 : turn = -1;
@@ -60,17 +60,18 @@ bool Pawn::canPawnTakeDiag(map<int,unique_ptr<ChessPiece>> &board, Direction dia
 }
 
 bool Pawn::canPawnTakeEnPassant(map<int,unique_ptr<ChessPiece>> &board, Direction side) {
-    int turn;
-    (side == LEFT) ? turn = 1 : turn = -1;
+    int move, turn;
+    (side == RIGHT) ? move = 1 : move = -1;
+    (color == WHITE) ? turn = 1 : turn = -1;
     map<int,unique_ptr<ChessPiece>>::iterator selectedPiece = board.end();
 
-    selectedPiece = board.find(position + turn);
-    // cout << "In canPawnTakeEnPassant looking at square: " << position + turn << endl;
-    // cout << selectedPiece->second->getEnPassant() << " and " << (position + turn) << endl;
-    // selectedPiece->second->getEnPassant() == (position + turn)
+    selectedPiece = board.find(position + (move * turn));
+    cout << "In canPawnTakeEnPassant looking at square: " << position + (move * turn) << endl;
+    cout << selectedPiece->second->getEnPassant() << " and " << (position + (move * turn)) << endl;
+    // selectedPiece->second->getEnPassant() == (position + (move * turn))
     if (selectedPiece != board.end() && selectedPiece->second->getColor() != color && 
-        selectedPiece->second->getPiece() == "Pawn" && selectedPiece->second->getEnPassant() == (position + turn)) {
-        // cout << "In Pawn canPawnTakeEnPassant: " << this->position << endl;
+        selectedPiece->second->getPiece() == "Pawn" && selectedPiece->second->getEnPassant() == (position + (move * turn))) {
+        cout << "In Pawn canPawnTakeEnPassant: " << this->position << endl;
         return true;
     }
 

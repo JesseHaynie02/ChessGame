@@ -8,13 +8,13 @@ ChessBoard::ChessBoard() {
         board.insert(pair<int,unique_ptr<ChessPiece>>(i, make_unique<Pawn>(i, 1, BLACK)));
     }
     // test piece
-    board.insert(pair<int,unique_ptr<ChessPiece>>(28, make_unique<Pawn>(28, 1, BLACK)));
+    // board.insert(pair<int,unique_ptr<ChessPiece>>(28, make_unique<Pawn>(28, 1, BLACK)));
 
     board.insert(pair<int,unique_ptr<ChessPiece>>(1, make_unique<Rook>(1, 5, WHITE)));
     board.insert(pair<int,unique_ptr<ChessPiece>>(2, make_unique<Knight>(2, 3, WHITE)));
     board.insert(pair<int,unique_ptr<ChessPiece>>(3, make_unique<Bishop>(3, 3, WHITE)));
     board.insert(pair<int,unique_ptr<ChessPiece>>(4, make_unique<Queen>(4, 9, WHITE)));
-    board.insert(pair<int,unique_ptr<ChessPiece>>(5, make_unique<King>(5, 100, WHITE)));
+    board.insert(pair<int,unique_ptr<ChessPiece>>(5, make_unique<King>(5, 10, WHITE)));
     board.insert(pair<int,unique_ptr<ChessPiece>>(6, make_unique<Rook>(6, 5, WHITE)));
     board.insert(pair<int,unique_ptr<ChessPiece>>(7, make_unique<Knight>(7, 3, WHITE)));
     board.insert(pair<int,unique_ptr<ChessPiece>>(8, make_unique<Bishop>(8, 3, WHITE)));
@@ -23,7 +23,7 @@ ChessBoard::ChessBoard() {
     board.insert(pair<int,unique_ptr<ChessPiece>>(58, make_unique<Knight>(58, 3, BLACK)));
     board.insert(pair<int,unique_ptr<ChessPiece>>(59, make_unique<Bishop>(59, 3, BLACK)));
     board.insert(pair<int,unique_ptr<ChessPiece>>(60, make_unique<Queen>(60, 9, BLACK)));
-    board.insert(pair<int,unique_ptr<ChessPiece>>(61, make_unique<King>(61, 100, BLACK)));
+    board.insert(pair<int,unique_ptr<ChessPiece>>(61, make_unique<King>(61, 10, BLACK)));
     board.insert(pair<int,unique_ptr<ChessPiece>>(62, make_unique<Rook>(62, 5, BLACK)));
     board.insert(pair<int,unique_ptr<ChessPiece>>(63, make_unique<Knight>(63, 3, BLACK)));
     board.insert(pair<int,unique_ptr<ChessPiece>>(64, make_unique<Bishop>(64, 3, BLACK)));
@@ -47,12 +47,10 @@ void ChessBoard::printPieces() {
     }
 }
 
-// If a take occurs check to see there is only one x set take flag to true and remove the x in the move
-//      note: a correct x can occur only if one x is present
-// Remove the promotion notation ex. =Q
-// Move the piece once the correct piece has been found
+// does move put ones own king in check? if so cant make move
+//     possible soln: move piece (call find piece and pass it the king and if the king is now in one of the pieces possible moves move is not possible) move piece back 
+// does move put other king in check/checkmate
 bool ChessBoard::movePiece(string move, Color color) {
-    set<char> chessColumns {'a','b','c','d','e','f','g'}; // (possibly deprecated)
     set<char> promotionPieces {'K','B','R','Q'};
     if (move.size() < 2 && move.size() > 7) {
         return false;
@@ -105,6 +103,10 @@ bool ChessBoard::movePiece(string move, Color color) {
         selectedPiece = findPiece(move, color);
         squareToMoveTo = board.find(grid.at(locOfMove));
         if (selectedPiece != board.end()) {
+            int originalLocOfPiece = selectedPiece->second->getPosition();
+            int newLocOfPiece = grid.at(locOfMove);
+            int pieceTakenLoc = newLocOfPiece;
+            string pieceTaken = "";
             // cout << "piece detected" << endl;
             if (isPieceTake) {
                 // delete piece
@@ -114,9 +116,12 @@ bool ChessBoard::movePiece(string move, Color color) {
                     pawnToTake = board.find(grid.at(locOfMove) - (8 * (color ? 1 : -1)));
                     if (pawnToTake != board.end() && selectedPiece->second->getEnPassant() == pawnToTake->second->getPosition()) {
                         // cout << "deleting en passant take" << endl;
+                        pieceTakenLoc = pawnToTake->second->getPosition();
+                        pieceTaken = "Pawn";
                         board.erase(pawnToTake);
                     }
                 } else {
+                    pieceTaken = squareToMoveTo->second->getPiece();
                     board.erase(squareToMoveTo);
                 }
             }
@@ -137,40 +142,69 @@ bool ChessBoard::movePiece(string move, Color color) {
                 board.insert(pair<int,unique_ptr<ChessPiece>>(grid.at(locOfMove), make_unique<King>(grid.at(locOfMove), selectedPiece->second->getValue(), color)));
             }
             board.erase(selectedPiece);
+
+            // return !moveCausesCheck(originalLocOfPiece, newLocOfPiece, pieceTakenLoc, piece, pieceTaken, color);
             return true;
         }
     }
 
-    // bool isPawnTake = islower(move[0]) && chessColumns.find(move[0]) != chessColumns.end() && move[1] == 'x';
-    // bool isBigPiece = (isupper(move[0]) && chessColumns.find(tolower(move[0])) != chessColumns.end() && isMoveOnGrid);
+    return false;
+}
 
-    // if (move.size() == 2 && isMoveOnGrid) { // Pawn push
-    //     // implement further
-    //     cout << "Pawn push identified" << endl;
-    //     // selectedPiece = findPawnToMove(move, color);
-    //     // if (selectedPiece != board.end() && !moveCausesCheck(move)) {
-    //     //     board.erase(selectedPiece);
-    //     //     board.insert(pair<int,unique_ptr<ChessPiece>>(grid.at(move), make_unique<Pawn>(grid.at(move), 1, color)));
-    //     //     return true;
-    //     // }
-    // } else if (move.size() == 3 && isBigPiece) { // Big piece move
-    //     // implement further
-    //     cout << "Big piece move identified" << endl;
-    // } else if (move.size() == 4) {
-    //     if (isPawnTake) {
-    //         // pawn take implement further
-    //         cout << "Pawn take identified" << endl;
-    //         // selectedPiece = findPawnToMove(move, color);
-    //     } else if (move[1] == 'x' && isBigPiece) {
-    //         // big piece take implement further
-    //         cout << "Big piece take identified" << endl;
-    //     }
-    // }
+// function implemented but not tested
+bool ChessBoard::moveCausesCheck(int originalLocOfPiece, int newLocOfPiece, int pieceTakenLoc, string pieceMoved, string pieceTaken, Color color) {
+
+    PieceIterator kingIter = board.end();
+    PieceIterator selectedPiece = board.end();
+    for (PieceIterator piece = board.begin(); piece != board.end(); ++piece) {
+        if (piece->second->getPiece() == "King" && piece->second->getColor() == color) {
+            kingIter = piece;
+        }
+    }
+
+    string locOfKing = "";
+    for (map<string,int>::iterator gridIter = grid.begin(); gridIter != grid.end(); ++gridIter) {
+        if (gridIter->second == kingIter->second->getPosition()) {
+            locOfKing = gridIter->first;
+        }
+    }
+
+    selectedPiece = findPiece(locOfKing, color);
+    if (selectedPiece != board.end()) { // move does cause check should move piece back and return true
+        board.erase(newLocOfPiece);
+        if (pieceTaken == "Pawn") {
+            board.insert(pair<int,unique_ptr<ChessPiece>>(pieceTakenLoc, make_unique<Pawn>(pieceTakenLoc, selectedPiece->second->getValue(), color)));
+        } else if (pieceTaken == "Rook") {
+            board.insert(pair<int,unique_ptr<ChessPiece>>(pieceTakenLoc, make_unique<Rook>(pieceTakenLoc, selectedPiece->second->getValue(), color)));
+        } else if (pieceTaken == "Knight") {
+            board.insert(pair<int,unique_ptr<ChessPiece>>(pieceTakenLoc, make_unique<Knight>(pieceTakenLoc, selectedPiece->second->getValue(), color)));
+        } else if (pieceTaken == "Bishop") {
+            board.insert(pair<int,unique_ptr<ChessPiece>>(pieceTakenLoc, make_unique<Bishop>(pieceTakenLoc, selectedPiece->second->getValue(), color)));
+        } else if (pieceTaken == "Queen") {
+            board.insert(pair<int,unique_ptr<ChessPiece>>(pieceTakenLoc, make_unique<Queen>(pieceTakenLoc, selectedPiece->second->getValue(), color)));
+        } else if (pieceTaken == "King") {
+            board.insert(pair<int,unique_ptr<ChessPiece>>(pieceTakenLoc, make_unique<King>(pieceTakenLoc, selectedPiece->second->getValue(), color)));
+        }
+
+        if (pieceMoved == "Pawn") {
+            board.insert(pair<int,unique_ptr<ChessPiece>>(originalLocOfPiece, make_unique<Pawn>(originalLocOfPiece, selectedPiece->second->getValue(), color)));
+        } else if (pieceMoved == "Rook") {
+            board.insert(pair<int,unique_ptr<ChessPiece>>(originalLocOfPiece, make_unique<Rook>(originalLocOfPiece, selectedPiece->second->getValue(), color)));
+        } else if (pieceMoved == "Knight") {
+            board.insert(pair<int,unique_ptr<ChessPiece>>(originalLocOfPiece, make_unique<Knight>(originalLocOfPiece, selectedPiece->second->getValue(), color)));
+        } else if (pieceMoved == "Bishop") {
+            board.insert(pair<int,unique_ptr<ChessPiece>>(originalLocOfPiece, make_unique<Bishop>(originalLocOfPiece, selectedPiece->second->getValue(), color)));
+        } else if (pieceMoved == "Queen") {
+            board.insert(pair<int,unique_ptr<ChessPiece>>(originalLocOfPiece, make_unique<Queen>(originalLocOfPiece, selectedPiece->second->getValue(), color)));
+        } else if (pieceMoved == "King") {
+            board.insert(pair<int,unique_ptr<ChessPiece>>(originalLocOfPiece, make_unique<King>(originalLocOfPiece, selectedPiece->second->getValue(), color)));
+        }
+    }
 
     return false;
 }
 
-// will need to implement when two rooks or knights can access same square (implemented not tested)
+// will need to implement when two rooks or knights can access same square (implemented, not tested)
 PieceIterator ChessBoard::findPiece(string move, Color color) {
     set<char> chessColumns {'a','b','c','d','e','f','g'};
     set<int> possibleMoves;
@@ -183,11 +217,11 @@ PieceIterator ChessBoard::findPiece(string move, Color color) {
         if (piece->second->getColor() == color) {
             possibleMoves.clear();
             possibleMoves = piece->second->getMoves(board);
-            // cout << "Moves: ";
-            // for (auto &moves : possibleMoves) {
-            //     cout << moves << " ";
-            // }
-            // cout << endl;
+            cout << "Moves: ";
+            for (auto &moves : possibleMoves) {
+                cout << moves << " ";
+            }
+            cout << endl;
             // cout << "determining if move is in set of possibleMoves" << endl;
             if (possibleMoves.find(grid.at(locOfMove)) != possibleMoves.end()) {
                 if (move.size() == 2) {
@@ -224,96 +258,16 @@ PieceIterator ChessBoard::findPiece(string move, Color color) {
     return selectedPiece;
 }
 
-// bool ChessBoard::moveCausesCheck(string move, Color color) {
-//     for (auto &piece : board) {
-//         // if (piece.second->getColor() != color && !piece.second->checksKing()) {
-//         //     return true;
-//         // }
-//     }
-
-//     return false;
-// }
-
 void ChessBoard::checkEnPassant(PieceIterator selectedPiece, int squareToMoveTo) {
     int position = selectedPiece->second->getPosition();
     Color color = selectedPiece->second->getColor();
     bool pawnsFirstMove = ((position >= 9 && position <= 16 && color == WHITE) || (position >= 49 && position <= 56 && color == BLACK));
     bool pawnDoublePush = ((squareToMoveTo >= 25 && squareToMoveTo <= 32) || (squareToMoveTo >= 33 && squareToMoveTo <= 40));
     if (pawnsFirstMove && pawnDoublePush) {
-        // cout << "setEnPassant enabled" << endl;
+        cout << "setEnPassant enabled" << endl;
         selectedPiece->second->setEnPassant(squareToMoveTo);
     } else {
-        // cout << "setEnPassant disabled" << endl;
+        cout << "setEnPassant disabled" << endl;
         selectedPiece->second->setEnPassant(0);
     }
 }
-
-// PieceIterator ChessBoard::findPawnToMove(string move, Color color) {
-//     int direction;
-//     string location = move.substr(move.size() - 2, 2);
-//     (color == WHITE) ? direction = 1 : direction = -1;
-//     PieceIterator iter = board.end();
-
-//     location[0] = move[0];
-//     // cout << "location = " << location << endl;
-//     iter = board.find(grid.at(location));
-//     if (iter == board.end() && (move[1] == '4' || move[1] == '5')) {
-//         location[1] -= direction;
-//         // cout << "location = " << location << endl;
-//         iter = board.find(grid.at(location));
-//         if (iter == board.end()) {
-//             location[1] -= direction;
-//             iter = board.find(grid.at(location));
-//             if (iter->second->getColor() == color && iter->second->getPiece() == "Pawn") {
-//                 cout << "Pawn is safe to push two square" << endl;
-//                 currEnPassant = move.substr(move.size() - 2, 2);
-//                 enPassantCounter = 0;
-//                 // cout << "location = " << location << endl;
-//                 return iter;    
-//             }
-//         }
-//     } else if (iter == board.end()) {
-//         location[1] -= direction;
-//         // cout << "location = " << location << endl;
-//         iter = board.find(grid.at(location));
-//         if (iter->second->getColor() == color && iter->second->getPiece() == "Pawn") {
-//             cout << "Pawn is safe to push one square or take piece" << endl;
-//             // cout << "location = " << location << endl;
-//             return iter;
-//         }
-//     }
-
-//     return board.end();
-// }
-
-// bool ChessBoard::isPieceOnGrid(string move, Color color) {
-//     set<char> chessColumns {'a','b','c','d','e','f','g'};
-//     unordered_map<char, string> piece_name {{'R',"Rook"},{'N',"Knight"},{'B',"Bishop"},{'Q',"Queen"},{'K',"King"}};
-//     if (move.size() < 2 && move.size() > 5) {
-//         return false;
-//     }
-
-//     cout << "In isPieceOnGrid evaluating grid position " << move.substr(move.size() - 2, 2) << endl;
-//     string potentialMove = move.substr(move.size() - 2, 2);
-//     if (grid.find(potentialMove) != grid.end() && chessColumns.find(tolower(move.at(0))) != chessColumns.end()) {
-//         cout << "Piece is on grid" << endl;
-//         cout << "Piece identified" << endl;
-//         if (move.size() == 2 || (move.size() == 4 && move[1] == 'x' && islower(move.at(0)))) {
-//             cout << "Pawn identified" << endl;
-//             for (int i = 1; i <= 64; ++i) {
-//                 PieceIterator iter = board.find(i);
-//                 if (iter != board.end() && iter->second->getPiece() == "Pawn" 
-//                     && iter->second->color == color && iter->second->checkMove(*this, move)) {
-
-//                 }
-//             }
-//         } else if (move.size() == 3) {
-//             cout << "Big piece move identified" << endl;
-
-//         } else if (move.size() == 4 && move[1] == 'x') {
-//             cout << "Piece take identified" << endl;
-
-//         }
-//     }
-//     return false;
-// }
