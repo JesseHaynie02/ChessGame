@@ -8,25 +8,26 @@ ChessBoard::ChessBoard() {
         board.insert(pair<int,unique_ptr<ChessPiece>>(i, make_unique<Pawn>(i, 1, BLACK)));
     }
     // test piece
-    // board.insert(pair<int,unique_ptr<ChessPiece>>(28, make_unique<Pawn>(28, 1, BLACK)));
+    board.insert(pair<int,unique_ptr<ChessPiece>>(28, make_unique<Rook>(28, 5, WHITE)));
+    board.insert(pair<int,unique_ptr<ChessPiece>>(29, make_unique<Rook>(29, 5, BLACK)));
 
     board.insert(pair<int,unique_ptr<ChessPiece>>(1, make_unique<Rook>(1, 5, WHITE)));
     board.insert(pair<int,unique_ptr<ChessPiece>>(2, make_unique<Knight>(2, 3, WHITE)));
     board.insert(pair<int,unique_ptr<ChessPiece>>(3, make_unique<Bishop>(3, 3, WHITE)));
     board.insert(pair<int,unique_ptr<ChessPiece>>(4, make_unique<Queen>(4, 9, WHITE)));
     board.insert(pair<int,unique_ptr<ChessPiece>>(5, make_unique<King>(5, 10, WHITE)));
-    board.insert(pair<int,unique_ptr<ChessPiece>>(6, make_unique<Rook>(6, 5, WHITE)));
+    board.insert(pair<int,unique_ptr<ChessPiece>>(6, make_unique<Bishop>(6, 3, WHITE)));
     board.insert(pair<int,unique_ptr<ChessPiece>>(7, make_unique<Knight>(7, 3, WHITE)));
-    board.insert(pair<int,unique_ptr<ChessPiece>>(8, make_unique<Bishop>(8, 3, WHITE)));
+    board.insert(pair<int,unique_ptr<ChessPiece>>(8, make_unique<Rook>(8, 5, WHITE)));
 
     board.insert(pair<int,unique_ptr<ChessPiece>>(57, make_unique<Rook>(57, 5, BLACK)));
     board.insert(pair<int,unique_ptr<ChessPiece>>(58, make_unique<Knight>(58, 3, BLACK)));
     board.insert(pair<int,unique_ptr<ChessPiece>>(59, make_unique<Bishop>(59, 3, BLACK)));
     board.insert(pair<int,unique_ptr<ChessPiece>>(60, make_unique<Queen>(60, 9, BLACK)));
     board.insert(pair<int,unique_ptr<ChessPiece>>(61, make_unique<King>(61, 10, BLACK)));
-    board.insert(pair<int,unique_ptr<ChessPiece>>(62, make_unique<Rook>(62, 5, BLACK)));
+    board.insert(pair<int,unique_ptr<ChessPiece>>(62, make_unique<Bishop>(62, 3, BLACK)));
     board.insert(pair<int,unique_ptr<ChessPiece>>(63, make_unique<Knight>(63, 3, BLACK)));
-    board.insert(pair<int,unique_ptr<ChessPiece>>(64, make_unique<Bishop>(64, 3, BLACK)));
+    board.insert(pair<int,unique_ptr<ChessPiece>>(64, make_unique<Rook>(64, 5, BLACK)));
 
     for (int i = 1; i <= 8; ++i) {
         for (int j = 1; j <= 8; ++j) {
@@ -99,7 +100,7 @@ bool ChessBoard::movePiece(string move, Color color) {
     // int selectedPiece = 0;
     board.begin();
     if (isMoveOnGrid) {
-        // cout << "move is on grid" << endl;
+        cout << "move is on grid" << endl;
         selectedPiece = findPiece(move, color);
         squareToMoveTo = board.find(grid.at(locOfMove));
         if (selectedPiece != board.end()) {
@@ -107,7 +108,7 @@ bool ChessBoard::movePiece(string move, Color color) {
             int newLocOfPiece = grid.at(locOfMove);
             int pieceTakenLoc = newLocOfPiece;
             string pieceTaken = "";
-            // cout << "piece detected" << endl;
+            cout << "piece detected" << endl;
             if (isPieceTake) {
                 // delete piece
                 // cout << "in piece take" << endl;
@@ -206,22 +207,23 @@ bool ChessBoard::moveCausesCheck(int originalLocOfPiece, int newLocOfPiece, int 
 
 // will need to implement when two rooks or knights can access same square (implemented, not tested)
 PieceIterator ChessBoard::findPiece(string move, Color color) {
+    cout << "In findpiece" << endl;
     set<char> chessColumns {'a','b','c','d','e','f','g'};
     set<int> possibleMoves;
     string locOfMove = move.substr(move.size() - 2, 2);
     PieceIterator selectedPiece = board.end();
 
     for (PieceIterator piece = board.begin(); piece != board.end(); ++piece) {
-        bool isCorrectPiece = (chessColumns.find(move[0]) != chessColumns.end()) || (move[0] == piece->second->getPiece()[0]) || 
-                              (move[0] == 'N' && piece->second->getPiece() == "Knight");
+        bool isCorrectPiece = (chessColumns.find(move[0]) != chessColumns.end()) || ((move[0] == piece->second->getPiece()[0]) || 
+                              (move[0] == 'N' && piece->second->getPiece() == "Knight"));
         if (piece->second->getColor() == color) {
             possibleMoves.clear();
             possibleMoves = piece->second->getMoves(board);
-            cout << "Moves: ";
-            for (auto &moves : possibleMoves) {
-                cout << moves << " ";
-            }
-            cout << endl;
+            // cout << "Moves: ";
+            // for (auto &moves : possibleMoves) {
+            //     cout << moves << " ";
+            // }
+            // cout << endl;
             // cout << "determining if move is in set of possibleMoves" << endl;
             if (possibleMoves.find(grid.at(locOfMove)) != possibleMoves.end()) {
                 if (move.size() == 2) {
@@ -232,7 +234,7 @@ PieceIterator ChessBoard::findPiece(string move, Color color) {
                         selectedPiece = piece;
                         break;
                     }
-                } else if (move.size() == 4) {
+                } else if (move.size() == 4) { // two of the same pieces can move to the same square
                     int pieceLoc = move[1] - '0';
                     if (pieceLoc <= 8) { // knight or rook is on the same row
                         int findRow = piece->second->getPosition() / 8;
@@ -248,6 +250,12 @@ PieceIterator ChessBoard::findPiece(string move, Color color) {
                             selectedPiece = piece;
                             break;
                         }
+                    }
+                } else if (move.size() == 5) { // three or more of the same pieces can see the square (rare case)
+                    int pieceLoc = grid.at(move.substr(1,2));
+                    if (pieceLoc == piece->second->getPosition() && isCorrectPiece) {
+                        selectedPiece = piece;
+                        break;
                     }
                 }
             }

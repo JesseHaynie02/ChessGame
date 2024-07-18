@@ -80,7 +80,54 @@ bool Pawn::canPawnTakeEnPassant(map<int,unique_ptr<ChessPiece>> &board, Directio
 
 set<int> Rook::getMoves(map<int,unique_ptr<ChessPiece>> &board)
 {
-    return set<int>();
+    cout << "in rook getMoves" << endl;
+    set<int> possibleMoves, temp;
+    // move until a piece has been found (either color) if opposite take if not nothing or until out of bounds
+    // check up
+    temp = checkSquareRecursive(board, position, 8);
+    possibleMoves = temp;
+    temp.clear();
+    // check down
+    temp = checkSquareRecursive(board, position, -8);
+    possibleMoves.insert(temp.begin(), temp.end());
+    temp.clear();
+    // // check left
+    temp = checkSquareRecursive(board, position, 1);
+    possibleMoves.insert(temp.begin(), temp.end());
+    temp.clear();
+    // // check right
+    temp = checkSquareRecursive(board, position, -1);
+    possibleMoves.insert(temp.begin(), temp.end());
+
+    for (auto &moves : possibleMoves) {
+        cout << moves << " ";
+    }
+    cout << endl;
+
+    return possibleMoves;
+}
+
+set<int> Rook::checkSquareRecursive(map<int,unique_ptr<ChessPiece>> &board, int currentPosition, int moveIncrem) {
+    set<int> possibleMoves, nextPossibleMove;
+    int currentPos = currentPosition + moveIncrem;
+    map<int,unique_ptr<ChessPiece>>::iterator nextSquarePiece = board.find(currentPos);
+    cout << "current position = " << currentPos << endl;
+    bool stayOnRow = abs(moveIncrem) == 1 && (currentPosition % 8 == 1 || currentPosition % 8 == 0);
+    bool inBounds = currentPos < 1 || currentPos > 64 || (nextSquarePiece != board.end() && nextSquarePiece->second->getColor() == color);
+    if (stayOnRow || inBounds) {
+        return possibleMoves;
+    }
+
+    // cout << "in recursive before checking if sqaure is empty or not" << endl;
+    if (nextSquarePiece != board.end() && nextSquarePiece->second->getColor() != color) {
+        possibleMoves.insert(currentPos);
+        return possibleMoves;
+    } else {
+        possibleMoves.insert(currentPos);
+    }
+    nextPossibleMove = checkSquareRecursive(board, currentPos, moveIncrem);
+    possibleMoves.insert(nextPossibleMove.begin(), nextPossibleMove.end());
+    return possibleMoves;
 }
 
 set<int> Knight::getMoves(map<int,unique_ptr<ChessPiece>> &board)
