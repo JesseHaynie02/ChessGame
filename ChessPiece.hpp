@@ -25,6 +25,7 @@ public:
     static int getEnPassant() {return enPassant;};
     static int setEnPassant(int location) {enPassant = location;};
     set<int> checkSquareRecursive(map<int,unique_ptr<ChessPiece>> &board, int currentPosition, int moveIncrem);
+    set<int> checkDirection(map<int,unique_ptr<ChessPiece>> &board, set<int> directions);
 protected:
     int position;
     const int value;

@@ -219,11 +219,11 @@ PieceIterator ChessBoard::findPiece(string move, Color color) {
         if (piece->second->getColor() == color) {
             possibleMoves.clear();
             possibleMoves = piece->second->getMoves(board);
-            // cout << "Moves: ";
-            // for (auto &moves : possibleMoves) {
-            //     cout << moves << " ";
-            // }
-            // cout << endl;
+            cout << "Moves: ";
+            for (auto &moves : possibleMoves) {
+                cout << moves << " ";
+            }
+            cout << endl;
             // cout << "determining if move is in set of possibleMoves" << endl;
             if (possibleMoves.find(grid.at(locOfMove)) != possibleMoves.end()) {
                 if (move.size() == 2) {
