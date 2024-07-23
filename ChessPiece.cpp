@@ -137,7 +137,28 @@ set<int> Queen::getMoves(map<int,unique_ptr<ChessPiece>> &board) {
 }
 
 set<int> King::getMoves(map<int,unique_ptr<ChessPiece>> &board) {
-    return set<int>();
+    cout << "in king getMoves" << endl;
+    set<int> possibleMoves, kingMoves = {-1, 1, -7, 7, -8, 8, -9, 9};
+
+    for (auto moveIter = kingMoves.begin(); moveIter != kingMoves.end(); ++moveIter) {
+        int movedPosition = position + *moveIter;
+        map<int,unique_ptr<ChessPiece>>::iterator nextSquarePiece = board.find(movedPosition);
+        bool bishopOnEdge = ((*moveIter == 7 || *moveIter == -9) && position % 8 == 1) || 
+                        ((*moveIter == -7 || *moveIter == 9) && position % 8 == 0);
+        bool stayOnRow = (*moveIter == -1 && position % 8 == 1) || (*moveIter == 1 && position % 8 == 0);
+        bool inBounds = movedPosition < 1 || movedPosition > 64 || (nextSquarePiece != board.end() && nextSquarePiece->second->getColor() == color);
+        if (!(bishopOnEdge || stayOnRow || inBounds)) {
+            possibleMoves.insert(movedPosition);
+        }
+    }
+
+    cout << "Printing moves" << endl;
+    for (auto &moves : possibleMoves) {
+        cout << moves << " ";
+    }
+    cout << endl;
+
+    return possibleMoves;
 }
 
 set<int> ChessPiece::checkDirection(map<int,unique_ptr<ChessPiece>> &board, set<int> directions) {
@@ -157,8 +178,6 @@ set<int> ChessPiece::checkDirection(map<int,unique_ptr<ChessPiece>> &board, set<
     return possibleMoves;
 }
 
-// Can reduce lines of code used in rook, bishop, and queen getMoves functions
-// possibly creating a set of directions and looping through it
 set<int> ChessPiece::checkSquareRecursive(map<int,unique_ptr<ChessPiece>> &board, int currentPosition, int moveIncrem) {
     set<int> possibleMoves, nextPossibleMove;
     int currentPos = currentPosition + moveIncrem;

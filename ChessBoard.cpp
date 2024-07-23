@@ -152,6 +152,7 @@ bool ChessBoard::movePiece(string move, Color color) {
     return false;
 }
 
+// ************************** start here next 7/23/2024 **************************
 // function implemented but not tested
 bool ChessBoard::moveCausesCheck(int originalLocOfPiece, int newLocOfPiece, int pieceTakenLoc, string pieceMoved, string pieceTaken, Color color) {
 
@@ -209,13 +210,19 @@ bool ChessBoard::moveCausesCheck(int originalLocOfPiece, int newLocOfPiece, int 
 PieceIterator ChessBoard::findPiece(string move, Color color) {
     cout << "In findpiece" << endl;
     set<char> chessColumns {'a','b','c','d','e','f','g'};
+    map<char,string> moveToPiece {{'R', "Rook"},{'N', "Knight"},{'B', "Bishop"},{'Q', "Queen"},{'K', "King"}};
     set<int> possibleMoves;
     string locOfMove = move.substr(move.size() - 2, 2);
     PieceIterator selectedPiece = board.end();
 
     for (PieceIterator piece = board.begin(); piece != board.end(); ++piece) {
-        bool isCorrectPiece = (chessColumns.find(move[0]) != chessColumns.end()) || ((move[0] == piece->second->getPiece()[0]) || 
-                              (move[0] == 'N' && piece->second->getPiece() == "Knight"));
+        string nameOfPiece;
+        if (moveToPiece.find(move[0]) != moveToPiece.end()) {
+            nameOfPiece = moveToPiece[move[0]];
+        } else if (chessColumns.find(move[0]) != chessColumns.end()) {
+            nameOfPiece = "Pawn";
+        }
+        bool isCorrectPiece = (nameOfPiece == piece->second->getPiece());
         if (piece->second->getColor() == color) {
             possibleMoves.clear();
             possibleMoves = piece->second->getMoves(board);
