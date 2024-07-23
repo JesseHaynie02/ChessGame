@@ -24,6 +24,7 @@ public:
     int getValue() {return value;};
     static int getEnPassant() {return enPassant;};
     static int setEnPassant(int location) {enPassant = location;};
+    set<int> checkSquareRecursive(map<int,unique_ptr<ChessPiece>> &board, int currentPosition, int moveIncrem);
 protected:
     int position;
     const int value;
@@ -46,8 +47,6 @@ public:
     Rook(int p, const int v, const Color c) : ChessPiece(p, v, c) {}
     string getPiece() override {return string("Rook");};
     set<int> getMoves(map<int,unique_ptr<ChessPiece>> &board) override;
-private:
-    set<int> checkSquareRecursive(map<int,unique_ptr<ChessPiece>> &board, int currentPosition, int moveIncrem);
 };
 
 class Knight : public ChessPiece {

@@ -8,8 +8,8 @@ ChessBoard::ChessBoard() {
         board.insert(pair<int,unique_ptr<ChessPiece>>(i, make_unique<Pawn>(i, 1, BLACK)));
     }
     // test piece
-    board.insert(pair<int,unique_ptr<ChessPiece>>(28, make_unique<Rook>(28, 5, WHITE)));
-    board.insert(pair<int,unique_ptr<ChessPiece>>(29, make_unique<Rook>(29, 5, BLACK)));
+    // board.insert(pair<int,unique_ptr<ChessPiece>>(28, make_unique<Rook>(28, 5, WHITE)));
+    // board.insert(pair<int,unique_ptr<ChessPiece>>(29, make_unique<Rook>(29, 5, BLACK)));
 
     board.insert(pair<int,unique_ptr<ChessPiece>>(1, make_unique<Rook>(1, 5, WHITE)));
     board.insert(pair<int,unique_ptr<ChessPiece>>(2, make_unique<Knight>(2, 3, WHITE)));
