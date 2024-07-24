@@ -3,7 +3,7 @@
 int ChessPiece::enPassant = 0;
 
 set<int> Pawn::getMoves(map<int,unique_ptr<ChessPiece>> &board) {
-    cout << "Pawn in getMoves at position: " << this->position << " ";
+    // cout << "Pawn in getMoves at position: " << this->position << " ";
     // set<int> possibleMoves = {1,2,3,4,5,6,7,9,10};
     int turn;
     (color == WHITE) ? turn = 1 : turn = -1;
@@ -64,7 +64,7 @@ bool Pawn::canPawnTakeEnPassant(map<int,unique_ptr<ChessPiece>> &board, Directio
 
     selectedPiece = board.find(position + (move * turn));
     // cout << "In canPawnTakeEnPassant looking at square: " << position + (move * turn) << endl;
-    cout << selectedPiece->second->getEnPassant() << " and " << (position + (move * turn)) << endl;
+    // cout << selectedPiece->second->getEnPassant() << " and " << (position + (move * turn)) << endl;
     // selectedPiece->second->getEnPassant() == (position + (move * turn))
     if (selectedPiece != board.end() && selectedPiece->second->getColor() != color && 
         selectedPiece->second->getPiece() == "Pawn" && selectedPiece->second->getEnPassant() == (position + (move * turn))) {
@@ -76,13 +76,13 @@ bool Pawn::canPawnTakeEnPassant(map<int,unique_ptr<ChessPiece>> &board, Directio
 }
 
 set<int> Rook::getMoves(map<int,unique_ptr<ChessPiece>> &board) {
-    cout << "in rook getMoves" << endl;
+    // cout << "in rook getMoves" << endl;
     set<int> directions = {8, -8, 1, -1};
     return checkDirection(board, directions);
 }
 
 set<int> Knight::getMoves(map<int,unique_ptr<ChessPiece>> &board) {
-    cout << "in knight getMoves" << endl;
+    // cout << "in knight getMoves" << endl;
     set<int> possibleMoves, knightMoves = {-17,-15,-10,-6,6,10,15,17};
 
     if (position % 8 == 7) {
@@ -115,29 +115,29 @@ set<int> Knight::getMoves(map<int,unique_ptr<ChessPiece>> &board) {
         }
     }
 
-    cout << "Printing moves" << endl;
+    // cout << "Printing moves" << endl;
     for (auto &moves : possibleMoves) {
-        cout << moves << " ";
+        // cout << moves << " ";
     }
-    cout << endl;
+    // cout << endl;
 
     return possibleMoves;
 }
 
 set<int> Bishop::getMoves(map<int,unique_ptr<ChessPiece>> &board) {
-    cout << "in bishop getMoves" << endl;
+    // cout << "in bishop getMoves" << endl;
     set<int> directions = {7, -7, 9, -9};
     return checkDirection(board, directions);
 }
 
 set<int> Queen::getMoves(map<int,unique_ptr<ChessPiece>> &board) {
-    cout << "in queen getMoves" << endl;
+    // cout << "in queen getMoves" << endl;
     set<int> directions = {8, -8, 1, -1, 7, -7, 9, -9};
     return checkDirection(board, directions);
 }
 
 set<int> King::getMoves(map<int,unique_ptr<ChessPiece>> &board) {
-    cout << "in king getMoves" << endl;
+    // cout << "in king getMoves" << endl;
     set<int> possibleMoves, kingMoves = {-1, 1, -7, 7, -8, 8, -9, 9};
 
     for (auto moveIter = kingMoves.begin(); moveIter != kingMoves.end(); ++moveIter) {
@@ -152,29 +152,29 @@ set<int> King::getMoves(map<int,unique_ptr<ChessPiece>> &board) {
         }
     }
 
-    cout << "Printing moves" << endl;
+    // cout << "Printing moves" << endl;
     for (auto &moves : possibleMoves) {
-        cout << moves << " ";
+        // cout << moves << " ";
     }
-    cout << endl;
+    // cout << endl;
 
     return possibleMoves;
 }
 
 set<int> ChessPiece::checkDirection(map<int,unique_ptr<ChessPiece>> &board, set<int> directions) {
     set<int> possibleMoves, temp;
-    cout << "directions: ";
+    // cout << "directions: ";
     for (auto dirIter = directions.begin(); dirIter != directions.end(); ++dirIter) {
-        cout << *dirIter << " " << endl;
+        // cout << *dirIter << " " << endl;
         temp = checkSquareRecursive(board, position, *dirIter);
         possibleMoves.insert(temp.begin(), temp.end());
         temp.clear();
     }
     // cout << "\nMoves: ";
     // for (auto &moves : possibleMoves) {
-    //     cout << moves << " ";
+        // cout << moves << " ";
     // }
-    cout << endl;
+    // cout << endl;
     return possibleMoves;
 }
 
@@ -190,7 +190,7 @@ set<int> ChessPiece::checkSquareRecursive(map<int,unique_ptr<ChessPiece>> &board
     if (stayOnRow || inBounds || bishopOnEdge) {
         return possibleMoves;
     }
-    cout << "current position = " << currentPos << endl;
+    // cout << "current position = " << currentPos << endl;
     // cout << "in recursive before checking if sqaure is empty or not" << endl;
     if (nextSquarePiece != board.end() && nextSquarePiece->second->getColor() != color) {
         possibleMoves.insert(currentPos);

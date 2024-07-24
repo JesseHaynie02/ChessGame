@@ -144,16 +144,13 @@ bool ChessBoard::movePiece(string move, Color color) {
             }
             board.erase(selectedPiece);
 
-            // return !moveCausesCheck(originalLocOfPiece, newLocOfPiece, pieceTakenLoc, piece, pieceTaken, color);
-            return true;
+            return !moveCausesCheck(originalLocOfPiece, newLocOfPiece, pieceTakenLoc, piece, pieceTaken, color);
         }
     }
 
     return false;
 }
 
-// ************************** start here next 7/23/2024 **************************
-// function implemented but not tested
 bool ChessBoard::moveCausesCheck(int originalLocOfPiece, int newLocOfPiece, int pieceTakenLoc, string pieceMoved, string pieceTaken, Color color) {
 
     PieceIterator kingIter = board.end();
@@ -164,14 +161,15 @@ bool ChessBoard::moveCausesCheck(int originalLocOfPiece, int newLocOfPiece, int 
         }
     }
 
-    string locOfKing = "";
+    string locOfKing = "+";
     for (map<string,int>::iterator gridIter = grid.begin(); gridIter != grid.end(); ++gridIter) {
         if (gridIter->second == kingIter->second->getPosition()) {
-            locOfKing = gridIter->first;
+            locOfKing += gridIter->first;
         }
     }
 
-    selectedPiece = findPiece(locOfKing, color);
+    cout << "location of king = " << locOfKing << endl;
+    selectedPiece = findPiece(locOfKing, (color == WHITE ? BLACK : WHITE));
     if (selectedPiece != board.end()) { // move does cause check should move piece back and return true
         board.erase(newLocOfPiece);
         if (pieceTaken == "Pawn") {
@@ -201,6 +199,7 @@ bool ChessBoard::moveCausesCheck(int originalLocOfPiece, int newLocOfPiece, int 
         } else if (pieceMoved == "King") {
             board.insert(pair<int,unique_ptr<ChessPiece>>(originalLocOfPiece, make_unique<King>(originalLocOfPiece, selectedPiece->second->getValue(), color)));
         }
+        return true;
     }
 
     return false;
@@ -209,8 +208,8 @@ bool ChessBoard::moveCausesCheck(int originalLocOfPiece, int newLocOfPiece, int 
 // will need to implement when two rooks or knights can access same square (implemented, not tested)
 PieceIterator ChessBoard::findPiece(string move, Color color) {
     cout << "In findpiece" << endl;
-    set<char> chessColumns {'a','b','c','d','e','f','g'};
-    map<char,string> moveToPiece {{'R', "Rook"},{'N', "Knight"},{'B', "Bishop"},{'Q', "Queen"},{'K', "King"}};
+    set<char> chessColumns {'a','b','c','d','e','f','g','h'};
+    map<char,string> moveToPiece {{'R', "Rook"},{'N', "Knight"},{'B', "Bishop"},{'Q', "Queen"},{'K', "King"},{'+',"looking for king"}};
     set<int> possibleMoves;
     string locOfMove = move.substr(move.size() - 2, 2);
     PieceIterator selectedPiece = board.end();
@@ -222,25 +221,31 @@ PieceIterator ChessBoard::findPiece(string move, Color color) {
         } else if (chessColumns.find(move[0]) != chessColumns.end()) {
             nameOfPiece = "Pawn";
         }
+        cout << nameOfPiece << " == " << piece->second->getPiece() << endl;
         bool isCorrectPiece = (nameOfPiece == piece->second->getPiece());
         if (piece->second->getColor() == color) {
             possibleMoves.clear();
             possibleMoves = piece->second->getMoves(board);
-            cout << "Moves: ";
-            for (auto &moves : possibleMoves) {
-                cout << moves << " ";
-            }
-            cout << endl;
+            // cout << "Moves: ";
+            // for (auto &moves : possibleMoves) {
+            //     cout << moves << " ";
+            // }
+            // cout << endl;
             // cout << "determining if move is in set of possibleMoves" << endl;
+            if (nameOfPiece == "looking for king" && possibleMoves.find(grid.at(locOfMove)) != possibleMoves.end()) {
+                cout << "King found from opposing side" << endl;
+                selectedPiece = piece;
+                break;
+            }
             if (possibleMoves.find(grid.at(locOfMove)) != possibleMoves.end()) {
-                if (move.size() == 2) {
+                if (move.size() == 2 && isCorrectPiece) {
+                    cout << "In if case move.size() == 2\n" << nameOfPiece << " == " << piece->second->getPiece() << endl;
                     selectedPiece = piece;
                     break;
-                } else if (move.size() == 3) {
-                    if (isCorrectPiece) {
-                        selectedPiece = piece;
-                        break;
-                    }
+                } else if (move.size() == 3 && isCorrectPiece) {
+                    cout << "In if case move.size() == 3\n" << nameOfPiece << " == " << piece->second->getPiece() << endl;
+                    selectedPiece = piece;
+                    break;
                 } else if (move.size() == 4) { // two of the same pieces can move to the same square
                     int pieceLoc = move[1] - '0';
                     if (pieceLoc <= 8) { // knight or rook is on the same row
