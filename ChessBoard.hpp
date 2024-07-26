@@ -19,17 +19,16 @@ public:
     bool getGameOver() {return game_over;}
     void setGameOver(bool status) {game_over = status;}
     bool movePiece(string move, Color color);
-    // map<int,unique_ptr<ChessPiece>> getBoard() {return board;};
-    // bool isPieceOnGrid(string move, Color color);
-    // check for check and check mate
 private:
     PieceIterator findPiece(string move, Color color);
-    void checkEnPassant(PieceIterator, int);
-    bool moveCausesCheck(int originalLocOfPiece, int newLocOfPiece, int pieceTakenLoc, string pieceMoved, string pieceTaken, Color color);
+    void checkEnPassant(int originalLocOfPiece, int squareToMoveTo, Color color);
+    void moveDo(int originalLocOfPiece, int newLocOfPiece, string pieceMoved, bool isPieceTake, int &pieceTakenLoc, string &pieceTaken, Color color);
+    PieceIterator moveUndo(int originalLocOfPiece, int newLocOfPiece, string pieceMoved, int pieceTakenLoc, string pieceTaken, Color color);
+    bool isPawnPromotion(string pieceType, string move, Color color);
+    bool inCheck(Color color);
+    bool inCheckMate(Color color);
 
     bool game_over;
-    // string currEnPassant;
-    // int enPassantCounter;
     map<int,unique_ptr<ChessPiece>> board;
     map<string,int> grid;
     // vector<string> moves;

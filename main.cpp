@@ -18,15 +18,9 @@ int main() {
             cout << "Please enter a valid move" << endl;
             continue;
         }
-        // board.checkEnPassant();
         (refTurn == WHITE) ? refTurn = BLACK: refTurn = WHITE;
-
-        // make move
-        // makeMove(move);
-
-        // check for checkmate
-        
     }
+    cout << "Game Over: " << ((refTurn == WHITE) ? "Black Won" : "White Won") << endl;
     return 0;
 }
 
