@@ -1,6 +1,10 @@
 #include "ChessBoard.hpp"
 
 ChessBoard::ChessBoard() {
+    whiteShortCastle = true;
+    whiteLongCastle = true;
+    blackShortCastle = true;
+    blackLongCastle = true;
     for (int i = 9; i <= 16; ++i) {
         board.insert(pair<int,unique_ptr<ChessPiece>>(i, make_unique<Pawn>(i, 1, WHITE)));
     }
@@ -78,11 +82,21 @@ bool ChessBoard::movePiece(string move, Color color) {
         move.erase(move.find('x'), 1);
     }
 
-    // prolly can just combine this if case
-    if (move == "O-O") {
+    // ********************* start here 7/26/24 *********************
+    if ((move == "O-O" || move == "O-O-O") && clearToCastle(move, color)) {
+        // cout << "In castling case" << endl;
         // King side castle (implement further)
-    } else if (move == "O-O-O") {
-        // Queen side castle (implement further)
+        int pieceTakenLoc = 0;
+        string pieceTaken = "";
+        int kingLoc = (color == WHITE ? 5 : 61);
+        int rookLoc;
+        if (color == WHITE) {
+            rookLoc = (move == "O-O" ? 8 : 1);
+        } else if (color == BLACK) {
+            rookLoc = (move == "O-O" ? 64 : 57);
+        }
+        // cout << "Side = " << move << " kingLoc = " << kingLoc << " rookLoc = " << rookLoc << endl;
+        return castle(move, kingLoc, rookLoc, color);
     }
 
     string locOfMove = move.substr(move.size() - 2, 2);
@@ -108,6 +122,7 @@ bool ChessBoard::movePiece(string move, Color color) {
                 return false;
             }
             checkEnPassant(originalLocOfPiece, newLocOfPiece, color);
+            checkCastling(pieceMoved, pieceTaken, originalLocOfPiece, newLocOfPiece, color);
             if (inCheckMate(color == WHITE ? BLACK : WHITE)) {
                 cout << "found checkmate" << endl;
                 setGameOver(true);
@@ -346,6 +361,89 @@ void ChessBoard::checkEnPassant(int originalLocOfPiece, int squareToMoveTo, Colo
         cout << "setEnPassant disabled" << endl;
         board.find(squareToMoveTo)->second->setEnPassant(0);
     }
+}
+
+void ChessBoard::checkCastling(string pieceMoved, string pieceTaken, int originalLocOfPiece, int newLocOfPiece, Color color) {
+    if (pieceMoved == "King") {
+        if (color == WHITE) {
+            whiteShortCastle = false;
+            whiteLongCastle = false;
+        } else if (color == BLACK) {
+            blackShortCastle = false;
+            blackLongCastle = false;
+        }
+    } else if (pieceMoved == "Rook" || pieceTaken == "Rook") {
+        if (color == WHITE && newLocOfPiece != originalLocOfPiece) {
+            if ((pieceMoved == "Rook" && originalLocOfPiece == 1) || (pieceTaken == "Rook" && newLocOfPiece == 1)) {
+                whiteLongCastle = false;
+            } else if ((pieceMoved == "Rook" && originalLocOfPiece == 8) || (pieceTaken == "Rook" && newLocOfPiece == 8)) {
+                whiteShortCastle = false;
+            }
+        } else if (color == BLACK && newLocOfPiece != originalLocOfPiece) {
+            if ((pieceMoved == "Rook" && originalLocOfPiece == 57) || (pieceTaken == "Rook" && newLocOfPiece == 57)) {
+                blackLongCastle = false;
+            } else if ((pieceMoved == "Rook" && originalLocOfPiece == 64) || (pieceTaken == "Rook" && newLocOfPiece == 64)) {
+                blackShortCastle = false;
+            }
+        }
+    }
+}
+
+bool ChessBoard::clearToCastle(string move, Color color) {
+    PieceIterator one, two, three;
+    if (move == "O-O") {
+        if (color == WHITE && whiteShortCastle) {
+            one = board.find(6);
+            two = board.find(7);
+            if (one == board.end() && two == board.end()) {
+                return true;
+            }
+        } else if (color == BLACK && blackShortCastle) {
+            one = board.find(62);
+            two = board.find(63);
+            if (one == board.end() && two == board.end()) {
+                return true;
+            }
+        }
+    } else if (move == "O-O-O") {
+        if (color == WHITE && whiteLongCastle) {
+            one = board.find(2);
+            two = board.find(3);
+            three = board.find(4);
+            if (one == board.end() && two == board.end() && three == board.end()) {
+                return true;
+            }
+        } else if (color == BLACK && blackLongCastle) {
+            one = board.find(58);
+            two = board.find(59);
+            three = board.find(60);
+            if (one == board.end() && two == board.end() && three == board.end()) {
+                return true;
+            }
+        }
+    }
+    cout << "clear to castle returned false" << endl;
+    return false;
+}
+
+bool ChessBoard::castle(string side, int kingLoc, int rookLoc, Color color) {
+    // cout << "in castle function" << endl;
+    int pieceTakenLoc = 0;
+    string pieceTaken = "";
+    int direction = (side == "O-O" ? 1 : -1);
+    moveDo(kingLoc, kingLoc + (1 * direction), "King", false, pieceTakenLoc, pieceTaken, color);
+    if (inCheck(color)) {
+        moveUndo(kingLoc, kingLoc + (1 * direction), "King", pieceTakenLoc, pieceTaken, color);
+        return false;
+    }
+    moveDo(kingLoc + (1 * direction), kingLoc + (2 * direction), "King", false, pieceTakenLoc, pieceTaken, color);
+    if (inCheck(color)) {
+        moveUndo(kingLoc + (1 * direction), kingLoc + (2 * direction), "King", pieceTakenLoc, pieceTaken, color);
+        return false;
+    }
+    moveDo(rookLoc, rookLoc + (side == "O-O" ? -2 : 3), "Rook", false, pieceTakenLoc, pieceTaken, color);
+    // cout << "returng castle true" << endl;
+    return true;
 }
 
 bool ChessBoard::isPawnPromotion(string pieceType, string move, Color color) {
