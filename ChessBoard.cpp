@@ -7,38 +7,38 @@ ChessBoard::ChessBoard() {
     whiteLongCastle = true;
     blackShortCastle = true;
     blackLongCastle = true;
-    for (int i = 9; i <= 16; ++i) {
-        board.insert(pair<int,unique_ptr<ChessPiece>>(i, make_unique<Pawn>(i, 1, WHITE)));
-    }
-    for (int i = 49; i <= 56; ++i) {
-        board.insert(pair<int,unique_ptr<ChessPiece>>(i, make_unique<Pawn>(i, 1, BLACK)));
-    }
+    // for (int i = 9; i <= 16; ++i) {
+    //     board.insert(pair<int,unique_ptr<ChessPiece>>(i, make_unique<Pawn>(i, 1, WHITE)));
+    // }
+    // for (int i = 49; i <= 56; ++i) {
+    //     board.insert(pair<int,unique_ptr<ChessPiece>>(i, make_unique<Pawn>(i, 1, BLACK)));
+    // }
     // // test piece
     // // board.insert(pair<int,unique_ptr<ChessPiece>>(28, make_unique<Pawn>(28, 1, BLACK)));
     // // board.insert(pair<int,unique_ptr<ChessPiece>>(29, make_unique<Rook>(29, 5, BLACK)));
 
-    board.insert(pair<int,unique_ptr<ChessPiece>>(1, make_unique<Rook>(1, 5, WHITE)));
-    board.insert(pair<int,unique_ptr<ChessPiece>>(2, make_unique<Knight>(2, 3, WHITE)));
-    board.insert(pair<int,unique_ptr<ChessPiece>>(3, make_unique<Bishop>(3, 3, WHITE)));
-    board.insert(pair<int,unique_ptr<ChessPiece>>(4, make_unique<Queen>(4, 9, WHITE)));
-    board.insert(pair<int,unique_ptr<ChessPiece>>(5, make_unique<King>(5, 10, WHITE)));
-    board.insert(pair<int,unique_ptr<ChessPiece>>(6, make_unique<Bishop>(6, 3, WHITE)));
-    board.insert(pair<int,unique_ptr<ChessPiece>>(7, make_unique<Knight>(7, 3, WHITE)));
-    board.insert(pair<int,unique_ptr<ChessPiece>>(8, make_unique<Rook>(8, 5, WHITE)));
+    // board.insert(pair<int,unique_ptr<ChessPiece>>(1, make_unique<Rook>(1, 5, WHITE)));
+    // board.insert(pair<int,unique_ptr<ChessPiece>>(2, make_unique<Knight>(2, 3, WHITE)));
+    // board.insert(pair<int,unique_ptr<ChessPiece>>(3, make_unique<Bishop>(3, 3, WHITE)));
+    // board.insert(pair<int,unique_ptr<ChessPiece>>(4, make_unique<Queen>(4, 9, WHITE)));
+    // board.insert(pair<int,unique_ptr<ChessPiece>>(5, make_unique<King>(5, 10, WHITE)));
+    // board.insert(pair<int,unique_ptr<ChessPiece>>(6, make_unique<Bishop>(6, 3, WHITE)));
+    // board.insert(pair<int,unique_ptr<ChessPiece>>(7, make_unique<Knight>(7, 3, WHITE)));
+    // board.insert(pair<int,unique_ptr<ChessPiece>>(8, make_unique<Rook>(8, 5, WHITE)));
 
-    board.insert(pair<int,unique_ptr<ChessPiece>>(57, make_unique<Rook>(57, 5, BLACK)));
-    board.insert(pair<int,unique_ptr<ChessPiece>>(58, make_unique<Knight>(58, 3, BLACK)));
-    board.insert(pair<int,unique_ptr<ChessPiece>>(59, make_unique<Bishop>(59, 3, BLACK)));
-    board.insert(pair<int,unique_ptr<ChessPiece>>(60, make_unique<Queen>(60, 9, BLACK)));
-    board.insert(pair<int,unique_ptr<ChessPiece>>(61, make_unique<King>(61, 10, BLACK)));
-    board.insert(pair<int,unique_ptr<ChessPiece>>(62, make_unique<Bishop>(62, 3, BLACK)));
-    board.insert(pair<int,unique_ptr<ChessPiece>>(63, make_unique<Knight>(63, 3, BLACK)));
-    board.insert(pair<int,unique_ptr<ChessPiece>>(64, make_unique<Rook>(64, 5, BLACK)));
+    // board.insert(pair<int,unique_ptr<ChessPiece>>(57, make_unique<Rook>(57, 5, BLACK)));
+    // board.insert(pair<int,unique_ptr<ChessPiece>>(58, make_unique<Knight>(58, 3, BLACK)));
+    // board.insert(pair<int,unique_ptr<ChessPiece>>(59, make_unique<Bishop>(59, 3, BLACK)));
+    // board.insert(pair<int,unique_ptr<ChessPiece>>(60, make_unique<Queen>(60, 9, BLACK)));
+    // board.insert(pair<int,unique_ptr<ChessPiece>>(61, make_unique<King>(61, 10, BLACK)));
+    // board.insert(pair<int,unique_ptr<ChessPiece>>(62, make_unique<Bishop>(62, 3, BLACK)));
+    // board.insert(pair<int,unique_ptr<ChessPiece>>(63, make_unique<Knight>(63, 3, BLACK)));
+    // board.insert(pair<int,unique_ptr<ChessPiece>>(64, make_unique<Rook>(64, 5, BLACK)));
 
     // test pieces
-    // board.insert(pair<int,unique_ptr<ChessPiece>>(57, make_unique<King>(57, 10, BLACK)));
+    board.insert(pair<int,unique_ptr<ChessPiece>>(57, make_unique<King>(57, 10, BLACK)));
     // board.insert(pair<int,unique_ptr<ChessPiece>>(56, make_unique<Queen>(56, 9, WHITE)));
-    // board.insert(pair<int,unique_ptr<ChessPiece>>(1, make_unique<King>(1, 10, WHITE)));
+    board.insert(pair<int,unique_ptr<ChessPiece>>(1, make_unique<King>(1, 10, WHITE)));
     // board.insert(pair<int,unique_ptr<ChessPiece>>(32, make_unique<Pawn>(32, 1, WHITE)));
     // board.insert(pair<int,unique_ptr<ChessPiece>>(30, make_unique<Pawn>(30, 1, WHITE)));
     // board.insert(pair<int,unique_ptr<ChessPiece>>(38, make_unique<Pawn>(38, 1, BLACK)));
@@ -69,7 +69,6 @@ void ChessBoard::printPieces() {
 
 // Left to implement
 // * 50 move rule A player can claim a draw if no capture or pawn move has been made in the last fifty moves. 
-// * Stalemate
 // * Checkmate is impossible
 
 bool ChessBoard::movePiece(string move, Color color) {
@@ -485,6 +484,9 @@ bool ChessBoard::isDraw(Color color) {
     if (inStalemate(color == WHITE ? BLACK : WHITE)) {
         return true;
     }
+    if (ischeckMateImpossible()) {
+        return true;
+    }
     return false;
 }
 
@@ -569,4 +571,46 @@ bool ChessBoard::inStalemate(Color color) {
     }
     // cout << "king is checkmated" << endl;
     return true;
+}
+
+bool ChessBoard::ischeckMateImpossible() {
+    map<string,int> whitePieceCount = {{"Pawn",0},{"Rook",0},{"Knight",0},{"Bishop",0},{"Queen",0},{"King",0}};
+    map<string,int> blackPieceCount = whitePieceCount;
+    for (PieceIterator piece = board.begin(); piece != board.end(); ++piece) {
+        if (piece->second->getColor() == WHITE) {
+            whitePieceCount[piece->second->getPiece()]++;
+        } else if (piece->second->getColor() == BLACK) {
+            blackPieceCount[piece->second->getPiece()]++;
+        }
+    }
+    if (whitePieceCount["King"] == 1 && blackPieceCount["King"] == 1) {
+        // King vs. King
+        if (whitePieceCount["Pawn"] == 0 && whitePieceCount["Rook"] == 0 && whitePieceCount["Knight"] == 0 && 
+            whitePieceCount["Bishop"] == 0 && whitePieceCount["Queen"] == 0 &&
+            blackPieceCount["Pawn"] == 0 && blackPieceCount["Rook"] == 0 && blackPieceCount["Knight"] == 0 && 
+            blackPieceCount["Bishop"] == 0 && blackPieceCount["Queen"] == 0) {
+            return true;
+        }
+        // King and Bishop vs. King
+        if (whitePieceCount["Bishop"] == 1 && whitePieceCount["Pawn"] == 0 && whitePieceCount["Rook"] == 0 && 
+            whitePieceCount["Knight"] == 0 && whitePieceCount["Queen"] == 0 &&
+            blackPieceCount["Pawn"] == 0 && blackPieceCount["Rook"] == 0 && blackPieceCount["Knight"] == 0 && 
+            blackPieceCount["Bishop"] == 0 && blackPieceCount["Queen"] == 0) {
+            return true;
+        }
+        // King and Knight vs. King
+        if (whitePieceCount["Knight"] == 1 && whitePieceCount["Pawn"] == 0 && whitePieceCount["Rook"] == 0 && 
+            whitePieceCount["Bishop"] == 0 && whitePieceCount["Queen"] == 0 &&
+            blackPieceCount["Pawn"] == 0 && blackPieceCount["Rook"] == 0 && blackPieceCount["Knight"] == 0 && 
+            blackPieceCount["Bishop"] == 0 && blackPieceCount["Queen"] == 0) {
+            return true;
+        }
+        // King and Two Knights vs. King
+        if (whitePieceCount["Knight"] == 2 && whitePieceCount["Pawn"] == 0 && whitePieceCount["Rook"] == 0 && 
+            whitePieceCount["Bishop"] == 0 && whitePieceCount["Queen"] == 0 &&
+            blackPieceCount["Pawn"] == 0 && blackPieceCount["Rook"] == 0 && blackPieceCount["Knight"] == 0 && 
+            blackPieceCount["Bishop"] == 0 && blackPieceCount["Queen"] == 0) {
+            return true;
+        }
+    }
 }

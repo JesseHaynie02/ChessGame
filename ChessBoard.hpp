@@ -35,6 +35,7 @@ private:
     size_t hashBoard(string gameState);
     bool isThreeFold(size_t currentGameState);
     bool inStalemate(Color color);
+    bool ischeckMateImpossible();
 
     bool whiteShortCastle, whiteLongCastle, blackShortCastle, blackLongCastle;
     bool gameOver;
