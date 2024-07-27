@@ -16,8 +16,8 @@ class ChessBoard {
 public:
     ChessBoard();
     void printPieces();
-    bool getGameOver() {return game_over;}
-    void setGameOver(bool status) {game_over = status;}
+    bool getGameOver() {return gameOver;}
+    bool getDraw() {return draw;}
     bool movePiece(string move, Color color);
 private:
     PieceIterator findPiece(string move, Color color);
@@ -28,13 +28,18 @@ private:
     void moveDo(int originalLocOfPiece, int newLocOfPiece, string pieceMoved, bool isPieceTake, int &pieceTakenLoc, string &pieceTaken, Color color);
     PieceIterator moveUndo(int originalLocOfPiece, int newLocOfPiece, string pieceMoved, int pieceTakenLoc, string pieceTaken, Color color);
     bool isPawnPromotion(string pieceType, string move, Color color);
+    bool isDraw();
     bool inCheck(Color color);
     bool inCheckMate(Color color);
+    string serializeBoard();
+    size_t hashBoard(string gameState);
+    bool isThreeFold(size_t currentGameState); 
 
     bool whiteShortCastle, whiteLongCastle, blackShortCastle, blackLongCastle;
-    bool game_over;
+    bool gameOver;
+    bool draw;
     map<int,unique_ptr<ChessPiece>> board;
     map<string,int> grid;
-    // vector<string> moves;
+    unordered_map<size_t,int> boardHistory;
 };
 #endif

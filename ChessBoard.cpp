@@ -1,6 +1,8 @@
 #include "ChessBoard.hpp"
 
 ChessBoard::ChessBoard() {
+    gameOver = false;
+    draw = false;
     whiteShortCastle = true;
     whiteLongCastle = true;
     blackShortCastle = true;
@@ -33,6 +35,10 @@ ChessBoard::ChessBoard() {
     board.insert(pair<int,unique_ptr<ChessPiece>>(63, make_unique<Knight>(63, 3, BLACK)));
     board.insert(pair<int,unique_ptr<ChessPiece>>(64, make_unique<Rook>(64, 5, BLACK)));
 
+    string boardState = serializeBoard();
+    size_t currentHashState = hashBoard(boardState);
+    boardHistory[currentHashState]++;
+
     for (int i = 1; i <= 8; ++i) {
         for (int j = 1; j <= 8; ++j) {
             string position;
@@ -51,6 +57,12 @@ void ChessBoard::printPieces() {
        << ", color = " << (piece.second->getColor() ? "Black" : "White") << endl;
     }
 }
+
+// Left to implement
+// * threefold repetition
+// * 50 move rule A player can claim a draw if no capture or pawn move has been made in the last fifty moves. 
+// * Stalemate
+// * Checkmate is impossible
 
 bool ChessBoard::movePiece(string move, Color color) {
     map<char,string> promotionPieces {{'K',"Knight"},{'Q',"Queen"},{'R',"Rook"},{'B',"Bishop"}};
@@ -82,7 +94,6 @@ bool ChessBoard::movePiece(string move, Color color) {
         move.erase(move.find('x'), 1);
     }
 
-    // ********************* start here 7/26/24 *********************
     if ((move == "O-O" || move == "O-O-O") && clearToCastle(move, color)) {
         // cout << "In castling case" << endl;
         // King side castle (implement further)
@@ -125,7 +136,9 @@ bool ChessBoard::movePiece(string move, Color color) {
             checkCastling(pieceMoved, pieceTaken, originalLocOfPiece, newLocOfPiece, color);
             if (inCheckMate(color == WHITE ? BLACK : WHITE)) {
                 cout << "found checkmate" << endl;
-                setGameOver(true);
+                gameOver = false;
+            } else if (isDraw()) {
+                draw = true;
             }
             return true;
         }
@@ -225,12 +238,12 @@ PieceIterator ChessBoard::findPiece(string move, Color color) {
             cout << nameOfPiece << " == " << piece->second->getPiece() << endl;
             possibleMoves.clear();
             possibleMoves = piece->second->getMoves(board);
-            cout << "Looking for position = " << grid.at(locOfMove) << endl;
-            cout << "Moves: ";
-            for (auto &moves : possibleMoves) {
-                cout << moves << " ";
-            }
-            cout << endl;
+            // cout << "Looking for position = " << grid.at(locOfMove) << endl;
+            // cout << "Moves: ";
+            // for (auto &moves : possibleMoves) {
+            //     cout << moves << " ";
+            // }
+            // cout << endl;
             // cout << "determining if move is in set of possibleMoves" << endl;
             if (nameOfPiece == "looking for king" && possibleMoves.find(grid.at(locOfMove)) != possibleMoves.end()) {
                 cout << "King found from opposing side" << endl;
@@ -451,4 +464,38 @@ bool ChessBoard::isPawnPromotion(string pieceType, string move, Color color) {
         return true;
     }
     return false;
+}
+
+bool ChessBoard::isDraw() {
+    string boardState = serializeBoard();
+    size_t currentHashState = hashBoard(boardState);
+    if (isThreeFold(currentHashState)) {
+        return true;
+    } else {
+        boardHistory[currentHashState]++;
+    }
+    return false;
+}
+
+string ChessBoard::serializeBoard() {
+    string gameState;
+
+    for (PieceIterator piece = board.begin(); piece != board.end(); ++piece) {
+        // piece, position, value, and color
+        gameState += piece->second->getPiece();
+        gameState += to_string(piece->second->getPosition());
+        gameState += to_string(piece->second->getValue());
+        gameState += to_string(piece->second->getColor());
+    }
+
+    return gameState;
+}
+
+size_t ChessBoard::hashBoard(string gameState) {
+    return hash<string>{}(gameState);
+}
+
+bool ChessBoard::isThreeFold(size_t currentHashState) {
+    unordered_map<size_t,int>::iterator iter = boardHistory.find(currentHashState);
+    return (iter != boardHistory.end() && iter->second >= 2);
 }

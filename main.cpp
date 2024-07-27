@@ -7,7 +7,7 @@ int main() {
     Color &refTurn = turn;
     // board.printPieces();
 
-    while (!board.getGameOver()) {
+    while (!board.getGameOver() && !board.getDraw()) {
         // get move
         board.printPieces();
         string move = getNextMove(refTurn);
@@ -19,8 +19,12 @@ int main() {
             continue;
         }
         (refTurn == WHITE) ? refTurn = BLACK: refTurn = WHITE;
+        if (board.getGameOver()) {
+            cout << "Game Over: " << ((refTurn == WHITE) ? "Black Won" : "White Won") << endl;
+        } else if (board.getDraw()) {
+            cout << "Game is a Draw" << endl;
+        }
     }
-    cout << "Game Over: " << ((refTurn == WHITE) ? "Black Won" : "White Won") << endl;
     return 0;
 }
 
