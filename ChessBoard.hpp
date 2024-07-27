@@ -28,12 +28,13 @@ private:
     void moveDo(int originalLocOfPiece, int newLocOfPiece, string pieceMoved, bool isPieceTake, int &pieceTakenLoc, string &pieceTaken, Color color);
     PieceIterator moveUndo(int originalLocOfPiece, int newLocOfPiece, string pieceMoved, int pieceTakenLoc, string pieceTaken, Color color);
     bool isPawnPromotion(string pieceType, string move, Color color);
-    bool isDraw();
+    bool isDraw(Color color);
     bool inCheck(Color color);
     bool inCheckMate(Color color);
     string serializeBoard();
     size_t hashBoard(string gameState);
-    bool isThreeFold(size_t currentGameState); 
+    bool isThreeFold(size_t currentGameState);
+    bool inStalemate(Color color);
 
     bool whiteShortCastle, whiteLongCastle, blackShortCastle, blackLongCastle;
     bool gameOver;

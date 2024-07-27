@@ -13,9 +13,9 @@ ChessBoard::ChessBoard() {
     for (int i = 49; i <= 56; ++i) {
         board.insert(pair<int,unique_ptr<ChessPiece>>(i, make_unique<Pawn>(i, 1, BLACK)));
     }
-    // test piece
-    // board.insert(pair<int,unique_ptr<ChessPiece>>(28, make_unique<Pawn>(28, 1, BLACK)));
-    // board.insert(pair<int,unique_ptr<ChessPiece>>(29, make_unique<Rook>(29, 5, BLACK)));
+    // // test piece
+    // // board.insert(pair<int,unique_ptr<ChessPiece>>(28, make_unique<Pawn>(28, 1, BLACK)));
+    // // board.insert(pair<int,unique_ptr<ChessPiece>>(29, make_unique<Rook>(29, 5, BLACK)));
 
     board.insert(pair<int,unique_ptr<ChessPiece>>(1, make_unique<Rook>(1, 5, WHITE)));
     board.insert(pair<int,unique_ptr<ChessPiece>>(2, make_unique<Knight>(2, 3, WHITE)));
@@ -34,6 +34,15 @@ ChessBoard::ChessBoard() {
     board.insert(pair<int,unique_ptr<ChessPiece>>(62, make_unique<Bishop>(62, 3, BLACK)));
     board.insert(pair<int,unique_ptr<ChessPiece>>(63, make_unique<Knight>(63, 3, BLACK)));
     board.insert(pair<int,unique_ptr<ChessPiece>>(64, make_unique<Rook>(64, 5, BLACK)));
+
+    // test pieces
+    // board.insert(pair<int,unique_ptr<ChessPiece>>(57, make_unique<King>(57, 10, BLACK)));
+    // board.insert(pair<int,unique_ptr<ChessPiece>>(56, make_unique<Queen>(56, 9, WHITE)));
+    // board.insert(pair<int,unique_ptr<ChessPiece>>(1, make_unique<King>(1, 10, WHITE)));
+    // board.insert(pair<int,unique_ptr<ChessPiece>>(32, make_unique<Pawn>(32, 1, WHITE)));
+    // board.insert(pair<int,unique_ptr<ChessPiece>>(30, make_unique<Pawn>(30, 1, WHITE)));
+    // board.insert(pair<int,unique_ptr<ChessPiece>>(38, make_unique<Pawn>(38, 1, BLACK)));
+    // board.insert(pair<int,unique_ptr<ChessPiece>>(40, make_unique<Pawn>(40, 1, BLACK)));
 
     string boardState = serializeBoard();
     size_t currentHashState = hashBoard(boardState);
@@ -59,7 +68,6 @@ void ChessBoard::printPieces() {
 }
 
 // Left to implement
-// * threefold repetition
 // * 50 move rule A player can claim a draw if no capture or pawn move has been made in the last fifty moves. 
 // * Stalemate
 // * Checkmate is impossible
@@ -137,7 +145,7 @@ bool ChessBoard::movePiece(string move, Color color) {
             if (inCheckMate(color == WHITE ? BLACK : WHITE)) {
                 cout << "found checkmate" << endl;
                 gameOver = false;
-            } else if (isDraw()) {
+            } else if (isDraw(color)) {
                 draw = true;
             }
             return true;
@@ -235,7 +243,7 @@ PieceIterator ChessBoard::findPiece(string move, Color color) {
         }
         bool isCorrectPiece = (nameOfPiece == piece->second->getPiece());
         if (piece->second->getColor() == color) {
-            cout << nameOfPiece << " == " << piece->second->getPiece() << endl;
+            // cout << nameOfPiece << " == " << piece->second->getPiece() << endl;
             possibleMoves.clear();
             possibleMoves = piece->second->getMoves(board);
             // cout << "Looking for position = " << grid.at(locOfMove) << endl;
@@ -466,13 +474,16 @@ bool ChessBoard::isPawnPromotion(string pieceType, string move, Color color) {
     return false;
 }
 
-bool ChessBoard::isDraw() {
+bool ChessBoard::isDraw(Color color) {
     string boardState = serializeBoard();
     size_t currentHashState = hashBoard(boardState);
     if (isThreeFold(currentHashState)) {
         return true;
     } else {
         boardHistory[currentHashState]++;
+    }
+    if (inStalemate(color == WHITE ? BLACK : WHITE)) {
+        return true;
     }
     return false;
 }
@@ -498,4 +509,64 @@ size_t ChessBoard::hashBoard(string gameState) {
 bool ChessBoard::isThreeFold(size_t currentHashState) {
     unordered_map<size_t,int>::iterator iter = boardHistory.find(currentHashState);
     return (iter != boardHistory.end() && iter->second >= 2);
+}
+
+bool ChessBoard::inStalemate(Color color) {
+    if (inCheck(color)) {
+        return false;
+    }
+
+    // cout << "in inStalemate" << endl;
+    for (PieceIterator piece = board.begin(); piece != board.end(); ++piece) {
+        if (piece->second->getColor() == color) {
+            // cout << "Looking at piece: " << piece->second->getPiece() << " position = " << piece->second->getPosition() << ", value = " << piece->second->getValue() 
+                //  << ", color = " << (piece->second->getColor() ? "Black" : "White") << endl;
+            set<int> possibleMoves = piece->second->getMoves(board);
+            // cout << "Moves: ";
+            // for (auto &moves : possibleMoves) {
+            //     cout << moves << " ";
+            // }
+            // cout << endl;
+            // if (piece->second->getPiece() != "King" && !possibleMoves.empty()) {
+            //     return false;
+            // }
+            if (piece->second->getPiece() != "King") {
+                cout << "piece: " << piece->second->getPiece() << endl;
+                if (!possibleMoves.empty()) {
+                    cout << "possibleMoves not empty" << endl;
+                    cout << "Moves: ";
+                    for (auto &moves : possibleMoves) {
+                        cout << moves << " ";
+                    }
+                    cout << endl;
+                }
+            }
+            for (set<int>::iterator pieceMove = possibleMoves.begin(); pieceMove != possibleMoves.end(); ++pieceMove) {
+                // cout << "pieceMove: " << *pieceMove << endl;
+                PieceIterator squareToMoveTo = board.find(*pieceMove);
+                int originalLocOfPiece = piece->second->getPosition();
+                int newLocOfPiece = *pieceMove;
+                int pieceTakenLoc = newLocOfPiece;
+                string pieceMoved = piece->second->getPiece();
+                string pieceTaken = "";
+                bool isPieceTake = squareToMoveTo != board.end() && squareToMoveTo->second->getColor() != color;
+                moveDo(originalLocOfPiece, newLocOfPiece, pieceMoved, isPieceTake, pieceTakenLoc, pieceTaken, color);
+                // cout << "after moveDo printing board" << endl;
+                // printPieces();
+                if (!inCheck(color)) {
+                    moveUndo(originalLocOfPiece, newLocOfPiece, pieceMoved, pieceTakenLoc, pieceTaken, color);
+                    // cout << "king is not checkmated" << endl;
+                    return false;
+                }
+                // cout << "king is still in check" << endl;
+                // cout << "pieceTaken: " << pieceTaken << endl;
+                // cout << "pieceTakenLoc: " << pieceTakenLoc << endl;
+                piece = moveUndo(originalLocOfPiece, newLocOfPiece, pieceMoved, pieceTakenLoc, pieceTaken, color);
+                // printPieces();
+                // cout << "undid move" << endl;
+            }
+        }
+    }
+    // cout << "king is checkmated" << endl;
+    return true;
 }

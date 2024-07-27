@@ -26,12 +26,12 @@ set<int> Pawn::getMoves(map<int,unique_ptr<ChessPiece>> &board) {
     }
 
     // Check diagonal captures and en passant
-    if (position % 8 != 0) { // Not on column a
+    if (position % 8 != 0) { // Not on column h
         if (this->canPawnTakeDiag(board, RIGHT) || this->canPawnTakeEnPassant(board, RIGHT)) {
             possibleMoves.insert(position + (9 * turn));
         }
     }
-    if (position % 8 != 1) { // Not on column h
+    if (position % 8 != 1) { // Not on column a
         if (this->canPawnTakeDiag(board, LEFT) || this->canPawnTakeEnPassant(board, LEFT)) {
             possibleMoves.insert(position + (7 * turn));
         }
