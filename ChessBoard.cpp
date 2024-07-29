@@ -7,15 +7,13 @@ ChessBoard::ChessBoard() {
     whiteLongCastle = true;
     blackShortCastle = true;
     blackLongCastle = true;
+
     for (int i = 9; i <= 16; ++i) {
         board.insert(pair<int,unique_ptr<ChessPiece>>(i, make_unique<Pawn>(i, 1, WHITE)));
     }
     for (int i = 49; i <= 56; ++i) {
         board.insert(pair<int,unique_ptr<ChessPiece>>(i, make_unique<Pawn>(i, 1, BLACK)));
     }
-    // test piece
-    // board.insert(pair<int,unique_ptr<ChessPiece>>(28, make_unique<Pawn>(28, 1, BLACK)));
-    // board.insert(pair<int,unique_ptr<ChessPiece>>(29, make_unique<Rook>(29, 5, BLACK)));
 
     board.insert(pair<int,unique_ptr<ChessPiece>>(1, make_unique<Rook>(1, 5, WHITE)));
     board.insert(pair<int,unique_ptr<ChessPiece>>(2, make_unique<Knight>(2, 3, WHITE)));
@@ -57,24 +55,29 @@ ChessBoard::ChessBoard() {
             string position;
             position += (j - 1) + 'a';
             position += i + '0';
-            // cout << position << " = " << ((i - 1) * 8) + j << endl;
-            grid.insert(pair<string,int>(position, ((i - 1) * 8) + j));
+            gridStoi.insert(pair<string,int>(position, ((i - 1) * 8) + j));
+            gridItos.insert(pair<int,string>(((i - 1) * 8) + j, position));
         }
     }
 }
 
 void ChessBoard::printPieces() {
-    // cout << "board size = " << board.size() << endl;
+    std::cout << std::left
+              << std::setw(10) << "Piece"
+              << std::setw(12) << "Position"
+              << std::setw(7)  << "Value"
+              << "Color" << std::endl;
     for (auto& piece : board) {
-        cout << piece.second->getPiece() << " position = " << piece.second->getPosition() << ", value = " << piece.second->getValue() 
-       << ", color = " << (piece.second->getColor() ? "Black" : "White") << endl;
+        std::cout << std::left
+                  << std::setw(10) << piece.second->getPiece()
+                  << std::setw(12) << gridItos.at(piece.second->getPosition())
+                  << std::setw(7)  << piece.second->getValue()
+                  << (piece.second->getColor() ? "Black" : "White")
+                  << std::endl;
     }
 }
 
-// Left to implement
-// * 50 move rule A player can claim a draw if no capture or pawn move has been made in the last fifty moves. 
-
-bool ChessBoard::movePiece(string move, Color color) {
+bool ChessBoard::performMove(string move, Color color) {
     map<char,string> promotionPieces {{'K',"Knight"},{'Q',"Queen"},{'R',"Rook"},{'B',"Bishop"}};
     string promotionType;
     if (move.size() < 2 && move.size() > 7) {
@@ -87,11 +90,9 @@ bool ChessBoard::movePiece(string move, Color color) {
         move.pop_back();
     }
 
-    // bool isPromotion = (move.back() == '+') || (move[0] == 'N' && piece->second->getPiece() == "Knight");
     bool isPromotion = (isupper(move.back())) && (promotionPieces.find(move.back()) != promotionPieces.end()) 
                         && move.at(move.size() - 2) == '=';
     if (isPromotion) {
-        // isPawnPromotion (implement further)
         promotionType = promotionPieces.at(move.back());
         move.pop_back();
         move.pop_back();
@@ -105,8 +106,6 @@ bool ChessBoard::movePiece(string move, Color color) {
     }
 
     if ((move == "O-O" || move == "O-O-O") && clearToCastle(move, color)) {
-        // cout << "In castling case" << endl;
-        // King side castle (implement further)
         int pieceTakenLoc = 0;
         string pieceTaken = "";
         int kingLoc = (color == WHITE ? 5 : 61);
@@ -116,41 +115,37 @@ bool ChessBoard::movePiece(string move, Color color) {
         } else if (color == BLACK) {
             rookLoc = (move == "O-O" ? 64 : 57);
         }
-        // cout << "Side = " << move << " kingLoc = " << kingLoc << " rookLoc = " << rookLoc << endl;
         return castle(move, kingLoc, rookLoc, color);
     }
 
     string locOfMove = move.substr(move.size() - 2, 2);
-    bool isMoveOnGrid = grid.find(locOfMove) != grid.end();
-    PieceIterator selectedPiece = board.end();
-    PieceIterator squareToMoveTo = board.end();
-    // int selectedPiece = 0;
-    board.begin();
+    bool isMoveOnGrid = gridStoi.find(locOfMove) != gridStoi.end();
+    PieceIterator selectedPiece = board.end(), squareToMoveTo = board.end();
     if (isMoveOnGrid) {
-        cout << "move is on grid" << endl;
+        // cout << "move is on grid" << endl;
         selectedPiece = findPiece(move, color);
-        squareToMoveTo = board.find(grid.at(locOfMove));
+        squareToMoveTo = board.find(gridStoi.at(locOfMove));
         if (selectedPiece != board.end()) {
-            int originalLocOfPiece = selectedPiece->second->getPosition();
-            int newLocOfPiece = grid.at(locOfMove);
-            int pieceTakenLoc = newLocOfPiece;
+            int originLoc = selectedPiece->second->getPosition();
+            int newLoc = gridStoi.at(locOfMove);
+            int pieceTakenLoc = newLoc;
             string oldPiece = selectedPiece->second->getPiece();
             string pieceMoved = ((isPromotion && isPawnPromotion(oldPiece, move, color)) ? promotionType : oldPiece);
             string pieceTaken = "";
-            moveDo(originalLocOfPiece, newLocOfPiece, pieceMoved, isPieceTake, pieceTakenLoc, pieceTaken, color);
-            if (inCheck(color)) {
-                moveUndo(originalLocOfPiece, newLocOfPiece, oldPiece, pieceTakenLoc, pieceTaken, color);
+            moveDo(originLoc, newLoc, pieceMoved, isPieceTake, pieceTakenLoc, pieceTaken, color);
+            if (isCheck(color)) {
+                moveUndo(originLoc, newLoc, oldPiece, pieceTakenLoc, pieceTaken, color);
                 return false;
             }
-            checkEnPassant(originalLocOfPiece, newLocOfPiece, color);
-            checkCastling(pieceMoved, pieceTaken, originalLocOfPiece, newLocOfPiece, color);
-            if (inCheckMate(color == WHITE ? BLACK : WHITE)) {
-                cout << "found checkmate" << endl;
-                gameOver = false;
+            checkEnPassant(originLoc, newLoc, color);
+            checkCastling(pieceMoved, pieceTaken, originLoc, newLoc, color);
+            if (isCheckMate(color == WHITE ? BLACK : WHITE)) {
+                // cout << "found checkmate" << endl;
+                gameOver = true;
             } else if (isDraw(color)) {
                 draw = true;
             }
-            cout << "fiftyMoveRule count = " << fiftyMoveRule.second << endl;
+            // cout << "fiftyMoveRule count = " << fiftyMoveRule.second << endl;
             return true;
         }
     }
@@ -158,14 +153,13 @@ bool ChessBoard::movePiece(string move, Color color) {
     return false;
 }
 
-void ChessBoard::moveDo(int originalLocOfPiece, int newLocOfPiece, string pieceMoved, bool isPieceTake, int &pieceTakenLoc, string &pieceTaken, Color color) {
-    PieceIterator selectedPiece = board.find(originalLocOfPiece);
-    PieceIterator squareToMoveTo = board.find(newLocOfPiece);
+void ChessBoard::moveDo(int originLoc, int newLoc, string pieceMoved, bool isPieceTake, int& pieceTakenLoc, string& pieceTaken, Color color) {
+    PieceIterator selectedPiece = board.find(originLoc), squareToMoveTo = board.find(newLoc);
     if (isPieceTake) {
         if (pieceMoved == "Pawn" && squareToMoveTo == board.end()) {
             PieceIterator pawnToTake = board.end();
-            pawnToTake = board.find(newLocOfPiece - (8 * (color == WHITE ? 1 : -1)));
-            cout << selectedPiece->second->getEnPassant() << " == " << pawnToTake->second->getPosition() << endl;
+            pawnToTake = board.find(newLoc - (8 * (color == WHITE ? 1 : -1)));
+            // cout << selectedPiece->second->getEnPassant() << " == " << pawnToTake->second->getPosition() << endl;
             if (pawnToTake != board.end() && selectedPiece->second->getEnPassant() == pawnToTake->second->getPosition()) {
                 // cout << "deleting en passant take" << endl;
                 pieceTakenLoc = pawnToTake->second->getPosition();
@@ -178,26 +172,26 @@ void ChessBoard::moveDo(int originalLocOfPiece, int newLocOfPiece, string pieceM
         }
     }
     if (pieceMoved == "Pawn") {
-        board.insert(pair<int,unique_ptr<ChessPiece>>(newLocOfPiece, make_unique<Pawn>(newLocOfPiece, 1, color)));
+        board.insert(pair<int,unique_ptr<ChessPiece>>(newLoc, make_unique<Pawn>(newLoc, 1, color)));
     } else if (pieceMoved == "Rook") {
-        board.insert(pair<int,unique_ptr<ChessPiece>>(newLocOfPiece, make_unique<Rook>(newLocOfPiece, 5, color)));
+        board.insert(pair<int,unique_ptr<ChessPiece>>(newLoc, make_unique<Rook>(newLoc, 5, color)));
     } else if (pieceMoved == "Knight") {
-        board.insert(pair<int,unique_ptr<ChessPiece>>(newLocOfPiece, make_unique<Knight>(newLocOfPiece, 3, color)));
+        board.insert(pair<int,unique_ptr<ChessPiece>>(newLoc, make_unique<Knight>(newLoc, 3, color)));
     } else if (pieceMoved == "Bishop") {
-        board.insert(pair<int,unique_ptr<ChessPiece>>(newLocOfPiece, make_unique<Bishop>(newLocOfPiece, 3, color)));
+        board.insert(pair<int,unique_ptr<ChessPiece>>(newLoc, make_unique<Bishop>(newLoc, 3, color)));
     } else if (pieceMoved == "Queen") {
-        board.insert(pair<int,unique_ptr<ChessPiece>>(newLocOfPiece, make_unique<Queen>(newLocOfPiece, 9, color)));
+        board.insert(pair<int,unique_ptr<ChessPiece>>(newLoc, make_unique<Queen>(newLoc, 9, color)));
     } else if (pieceMoved == "King") {
-        board.insert(pair<int,unique_ptr<ChessPiece>>(newLocOfPiece, make_unique<King>(newLocOfPiece, 10, color)));
+        board.insert(pair<int,unique_ptr<ChessPiece>>(newLoc, make_unique<King>(newLoc, 10, color)));
     }
     board.erase(selectedPiece);
 }
 
-PieceIterator ChessBoard::moveUndo(int originalLocOfPiece, int newLocOfPiece, string pieceMoved, int pieceTakenLoc, string pieceTaken, Color color) {
+PieceIterator ChessBoard::moveUndo(int originLoc, int newLoc, string pieceMoved, int pieceTakenLoc, string pieceTaken, Color color) {
     // cout << "in moveUndo" << endl;
     // cout << "pieceTaken: " << pieceTaken << endl;
     Color colorTaken = (color == WHITE ? BLACK : WHITE);
-    board.erase(newLocOfPiece);
+    board.erase(newLoc);
     if (pieceTaken == "Pawn") {
         board.insert(pair<int,unique_ptr<ChessPiece>>(pieceTakenLoc, make_unique<Pawn>(pieceTakenLoc, 1, colorTaken)));
     } else if (pieceTaken == "Rook") {
@@ -213,22 +207,21 @@ PieceIterator ChessBoard::moveUndo(int originalLocOfPiece, int newLocOfPiece, st
     }
 
     if (pieceMoved == "Pawn") {
-        board.insert(pair<int,unique_ptr<ChessPiece>>(originalLocOfPiece, make_unique<Pawn>(originalLocOfPiece, 1, color)));
+        board.insert(pair<int,unique_ptr<ChessPiece>>(originLoc, make_unique<Pawn>(originLoc, 1, color)));
     } else if (pieceMoved == "Rook") {
-        board.insert(pair<int,unique_ptr<ChessPiece>>(originalLocOfPiece, make_unique<Rook>(originalLocOfPiece, 5, color)));
+        board.insert(pair<int,unique_ptr<ChessPiece>>(originLoc, make_unique<Rook>(originLoc, 5, color)));
     } else if (pieceMoved == "Knight") {
-        board.insert(pair<int,unique_ptr<ChessPiece>>(originalLocOfPiece, make_unique<Knight>(originalLocOfPiece, 3, color)));
+        board.insert(pair<int,unique_ptr<ChessPiece>>(originLoc, make_unique<Knight>(originLoc, 3, color)));
     } else if (pieceMoved == "Bishop") {
-        board.insert(pair<int,unique_ptr<ChessPiece>>(originalLocOfPiece, make_unique<Bishop>(originalLocOfPiece, 3, color)));
+        board.insert(pair<int,unique_ptr<ChessPiece>>(originLoc, make_unique<Bishop>(originLoc, 3, color)));
     } else if (pieceMoved == "Queen") {
-        board.insert(pair<int,unique_ptr<ChessPiece>>(originalLocOfPiece, make_unique<Queen>(originalLocOfPiece, 9, color)));
+        board.insert(pair<int,unique_ptr<ChessPiece>>(originLoc, make_unique<Queen>(originLoc, 9, color)));
     } else if (pieceMoved == "King") {
-        board.insert(pair<int,unique_ptr<ChessPiece>>(originalLocOfPiece, make_unique<King>(originalLocOfPiece, 10, color)));
+        board.insert(pair<int,unique_ptr<ChessPiece>>(originLoc, make_unique<King>(originLoc, 10, color)));
     }
-    return board.find(originalLocOfPiece);
+    return board.find(originLoc);
 }
 
-// will need to implement when two rooks or knights can access same square (implemented, not tested)
 PieceIterator ChessBoard::findPiece(string move, Color color) {
     // cout << "In findpiece" << endl;
     set<char> chessColumns {'a','b','c','d','e','f','g','h'};
@@ -238,36 +231,36 @@ PieceIterator ChessBoard::findPiece(string move, Color color) {
     PieceIterator selectedPiece = board.end();
 
     for (PieceIterator piece = board.begin(); piece != board.end(); ++piece) {
-        string nameOfPiece;
+        string name;
         if (moveToPiece.find(move[0]) != moveToPiece.end()) {
-            nameOfPiece = moveToPiece[move[0]];
+            name = moveToPiece[move[0]];
         } else if (chessColumns.find(move[0]) != chessColumns.end()) {
-            nameOfPiece = "Pawn";
+            name = "Pawn";
         }
-        bool isCorrectPiece = (nameOfPiece == piece->second->getPiece());
+        bool isCorrectPiece = (name == piece->second->getPiece());
         if (piece->second->getColor() == color) {
-            // cout << nameOfPiece << " == " << piece->second->getPiece() << endl;
-            possibleMoves.clear();
-            possibleMoves = piece->second->getMoves(board);
-            // cout << "Looking for position = " << grid.at(locOfMove) << endl;
+            // cout << name << " == " << piece->second->getPiece() << endl;
+            // cout << "Looking for position = " << gridStoi.at(locOfMove) << endl;
             // cout << "Moves: ";
             // for (auto &moves : possibleMoves) {
             //     cout << moves << " ";
             // }
             // cout << endl;
             // cout << "determining if move is in set of possibleMoves" << endl;
-            if (nameOfPiece == "looking for king" && possibleMoves.find(grid.at(locOfMove)) != possibleMoves.end()) {
-                cout << "King found from opposing side" << endl;
+            possibleMoves.clear();
+            possibleMoves = piece->second->getMoves(board);
+            if (name == "looking for king" && possibleMoves.find(gridStoi.at(locOfMove)) != possibleMoves.end()) {
+                // cout << "King found from opposing side" << endl;
                 selectedPiece = piece;
                 break;
             }
-            if (possibleMoves.find(grid.at(locOfMove)) != possibleMoves.end()) {
+            if (possibleMoves.find(gridStoi.at(locOfMove)) != possibleMoves.end()) {
                 if (move.size() == 2 && isCorrectPiece) {
-                    // cout << "In if case move.size() == 2\n" << nameOfPiece << " == " << piece->second->getPiece() << endl;
+                    // cout << "In if case move.size() == 2\n" << name << " == " << piece->second->getPiece() << endl;
                     selectedPiece = piece;
                     break;
                 } else if (move.size() == 3 && isCorrectPiece) {
-                    // cout << "In if case move.size() == 3\n" << nameOfPiece << " == " << piece->second->getPiece() << endl;
+                    // cout << "In if case move.size() == 3\n" << name << " == " << piece->second->getPiece() << endl;
                     selectedPiece = piece;
                     break;
                 } else if (move.size() == 4) { // two of the same pieces can move to the same square
@@ -288,7 +281,7 @@ PieceIterator ChessBoard::findPiece(string move, Color color) {
                         }
                     }
                 } else if (move.size() == 5) { // three or more of the same pieces can see the square (rare case)
-                    int pieceLoc = grid.at(move.substr(1,2));
+                    int pieceLoc = gridStoi.at(move.substr(1,2));
                     if (pieceLoc == piece->second->getPosition() && isCorrectPiece) {
                         selectedPiece = piece;
                         break;
@@ -302,7 +295,7 @@ PieceIterator ChessBoard::findPiece(string move, Color color) {
     return selectedPiece;
 }
 
-bool ChessBoard::inCheck(Color color) {
+bool ChessBoard::isCheck(Color color) {
     PieceIterator kingIter = board.end();
     PieceIterator selectedPiece = board.end();
     for (PieceIterator piece = board.begin(); piece != board.end(); ++piece) {
@@ -312,28 +305,28 @@ bool ChessBoard::inCheck(Color color) {
     }
 
     string locOfKing = "+";
-    for (map<string,int>::iterator gridIter = grid.begin(); gridIter != grid.end(); ++gridIter) {
-        if (gridIter->second == kingIter->second->getPosition()) {
-            locOfKing += gridIter->first;
+    for (map<string,int>::iterator gridStoiIter = gridStoi.begin(); gridStoiIter != gridStoi.end(); ++gridStoiIter) {
+        if (gridStoiIter->second == kingIter->second->getPosition()) {
+            locOfKing += gridStoiIter->first;
         }
     }
 
     // cout << "location of king = " << locOfKing << endl;
     selectedPiece = findPiece(locOfKing, (color == WHITE ? BLACK : WHITE));
     if (selectedPiece != board.end()) {
-        cout << "king is in check" << endl;
+        // cout << "king is in check" << endl;
         return true;
     }
-    cout << "king is not in check" << endl;
+    // cout << "king is not in check" << endl;
     return false;
 }
 
-bool ChessBoard::inCheckMate(Color color) {
-    if (!inCheck(color)) {
+bool ChessBoard::isCheckMate(Color color) {
+    if (!isCheck(color)) {
         return false;
     }
 
-    // cout << "in inCheckMate" << endl;
+    // cout << "in isCheckMate" << endl;
     for (PieceIterator piece = board.begin(); piece != board.end(); ++piece) {
         if (piece->second->getColor() == color) {
             // cout << "Looking at piece: " << piece->second->getPiece() << " position = " << piece->second->getPosition() << ", value = " << piece->second->getValue() 
@@ -347,24 +340,24 @@ bool ChessBoard::inCheckMate(Color color) {
             for (set<int>::iterator pieceMove = possibleMoves.begin(); pieceMove != possibleMoves.end(); ++pieceMove) {
                 // cout << "pieceMove: " << *pieceMove << endl;
                 PieceIterator squareToMoveTo = board.find(*pieceMove);
-                int originalLocOfPiece = piece->second->getPosition();
-                int newLocOfPiece = *pieceMove;
-                int pieceTakenLoc = newLocOfPiece;
+                int originLoc = piece->second->getPosition();
+                int newLoc = *pieceMove;
+                int pieceTakenLoc = newLoc;
                 string pieceMoved = piece->second->getPiece();
                 string pieceTaken = "";
                 bool isPieceTake = squareToMoveTo != board.end() && squareToMoveTo->second->getColor() != color;
-                moveDo(originalLocOfPiece, newLocOfPiece, pieceMoved, isPieceTake, pieceTakenLoc, pieceTaken, color);
+                moveDo(originLoc, newLoc, pieceMoved, isPieceTake, pieceTakenLoc, pieceTaken, color);
                 // cout << "after moveDo printing board" << endl;
                 // printPieces();
-                if (!inCheck(color)) {
-                    moveUndo(originalLocOfPiece, newLocOfPiece, pieceMoved, pieceTakenLoc, pieceTaken, color);
+                if (!isCheck(color)) {
+                    moveUndo(originLoc, newLoc, pieceMoved, pieceTakenLoc, pieceTaken, color);
                     // cout << "king is not checkmated" << endl;
                     return false;
                 }
                 // cout << "king is still in check" << endl;
                 // cout << "pieceTaken: " << pieceTaken << endl;
                 // cout << "pieceTakenLoc: " << pieceTakenLoc << endl;
-                piece = moveUndo(originalLocOfPiece, newLocOfPiece, pieceMoved, pieceTakenLoc, pieceTaken, color);
+                piece = moveUndo(originLoc, newLoc, pieceMoved, pieceTakenLoc, pieceTaken, color);
                 // printPieces();
                 // cout << "undid move" << endl;
             }
@@ -374,20 +367,20 @@ bool ChessBoard::inCheckMate(Color color) {
     return true;
 }
 
-void ChessBoard::checkEnPassant(int originalLocOfPiece, int squareToMoveTo, Color color) {
-    bool pawnsFirstMove = ((originalLocOfPiece >= 9 && originalLocOfPiece <= 16 && color == WHITE) || 
-                           (originalLocOfPiece >= 49 && originalLocOfPiece <= 56 && color == BLACK));
+void ChessBoard::checkEnPassant(int originLoc, int squareToMoveTo, Color color) {
+    bool pawnsFirstMove = ((originLoc >= 9 && originLoc <= 16 && color == WHITE) || 
+                           (originLoc >= 49 && originLoc <= 56 && color == BLACK));
     bool pawnDoublePush = ((squareToMoveTo >= 25 && squareToMoveTo <= 32) || (squareToMoveTo >= 33 && squareToMoveTo <= 40));
     if (pawnsFirstMove && pawnDoublePush) {
-        cout << "setEnPassant enabled" << endl;
+        // cout << "setEnPassant enabled" << endl;
         board.find(squareToMoveTo)->second->setEnPassant(squareToMoveTo);
     } else {
-        cout << "setEnPassant disabled" << endl;
+        // cout << "setEnPassant disabled" << endl;
         board.find(squareToMoveTo)->second->setEnPassant(0);
     }
 }
 
-void ChessBoard::checkCastling(string pieceMoved, string pieceTaken, int originalLocOfPiece, int newLocOfPiece, Color color) {
+void ChessBoard::checkCastling(string pieceMoved, string pieceTaken, int originLoc, int newLoc, Color color) {
     if (pieceMoved == "King") {
         if (color == WHITE) {
             whiteShortCastle = false;
@@ -397,16 +390,16 @@ void ChessBoard::checkCastling(string pieceMoved, string pieceTaken, int origina
             blackLongCastle = false;
         }
     } else if (pieceMoved == "Rook" || pieceTaken == "Rook") {
-        if (color == WHITE && newLocOfPiece != originalLocOfPiece) {
-            if ((pieceMoved == "Rook" && originalLocOfPiece == 1) || (pieceTaken == "Rook" && newLocOfPiece == 1)) {
+        if (color == WHITE && newLoc != originLoc) {
+            if ((pieceMoved == "Rook" && originLoc == 1) || (pieceTaken == "Rook" && newLoc == 1)) {
                 whiteLongCastle = false;
-            } else if ((pieceMoved == "Rook" && originalLocOfPiece == 8) || (pieceTaken == "Rook" && newLocOfPiece == 8)) {
+            } else if ((pieceMoved == "Rook" && originLoc == 8) || (pieceTaken == "Rook" && newLoc == 8)) {
                 whiteShortCastle = false;
             }
-        } else if (color == BLACK && newLocOfPiece != originalLocOfPiece) {
-            if ((pieceMoved == "Rook" && originalLocOfPiece == 57) || (pieceTaken == "Rook" && newLocOfPiece == 57)) {
+        } else if (color == BLACK && newLoc != originLoc) {
+            if ((pieceMoved == "Rook" && originLoc == 57) || (pieceTaken == "Rook" && newLoc == 57)) {
                 blackLongCastle = false;
-            } else if ((pieceMoved == "Rook" && originalLocOfPiece == 64) || (pieceTaken == "Rook" && newLocOfPiece == 64)) {
+            } else if ((pieceMoved == "Rook" && originLoc == 64) || (pieceTaken == "Rook" && newLoc == 64)) {
                 blackShortCastle = false;
             }
         }
@@ -446,7 +439,7 @@ bool ChessBoard::clearToCastle(string move, Color color) {
             }
         }
     }
-    cout << "clear to castle returned false" << endl;
+    // cout << "clear to castle returned false" << endl;
     return false;
 }
 
@@ -456,12 +449,12 @@ bool ChessBoard::castle(string side, int kingLoc, int rookLoc, Color color) {
     string pieceTaken = "";
     int direction = (side == "O-O" ? 1 : -1);
     moveDo(kingLoc, kingLoc + (1 * direction), "King", false, pieceTakenLoc, pieceTaken, color);
-    if (inCheck(color)) {
+    if (isCheck(color)) {
         moveUndo(kingLoc, kingLoc + (1 * direction), "King", pieceTakenLoc, pieceTaken, color);
         return false;
     }
     moveDo(kingLoc + (1 * direction), kingLoc + (2 * direction), "King", false, pieceTakenLoc, pieceTaken, color);
-    if (inCheck(color)) {
+    if (isCheck(color)) {
         moveUndo(kingLoc + (1 * direction), kingLoc + (2 * direction), "King", pieceTakenLoc, pieceTaken, color);
         return false;
     }
@@ -488,14 +481,14 @@ bool ChessBoard::isDraw(Color color) {
         boardHistory[currentHashHistory]++;
     }
     if (isFiftyMoveRule(currentHashFiftyMoveRule)) {
-        cout << "fifty move draw" << endl;
+        // cout << "fifty move draw" << endl;
         return true;
     }
-    if (inStalemate(color == WHITE ? BLACK : WHITE)) {
+    if (isStalemate(color == WHITE ? BLACK : WHITE)) {
         return true;
     }
     if (ischeckMateImpossible()) {
-        cout << "checkmate impossible" << endl;
+        // cout << "checkmate impossible" << endl;
         return true;
     }
     return false;
@@ -542,10 +535,9 @@ bool ChessBoard::isThreeFold(size_t currentHashState) {
 }
 
 bool ChessBoard::isFiftyMoveRule(size_t currentHashState) {
-    // cout << "fiftyMoveRule count = " << fiftyMoveRule.second << endl;
     if (currentHashState == fiftyMoveRule.first) {
         fiftyMoveRule.second++;
-        if (fiftyMoveRule.second >= 10) {
+        if (fiftyMoveRule.second >= 100) {
             return true;
         }
     } else {
@@ -555,63 +547,35 @@ bool ChessBoard::isFiftyMoveRule(size_t currentHashState) {
     return false;
 }
 
-bool ChessBoard::inStalemate(Color color) {
-    if (inCheck(color)) {
+bool ChessBoard::isStalemate(Color color) {
+    if (isCheck(color)) {
         return false;
     }
 
-    // cout << "in inStalemate" << endl;
+    // cout << "in isStalemate" << endl;
     for (PieceIterator piece = board.begin(); piece != board.end(); ++piece) {
         if (piece->second->getColor() == color) {
-            // cout << "Looking at piece: " << piece->second->getPiece() << " position = " << piece->second->getPosition() << ", value = " << piece->second->getValue() 
-                //  << ", color = " << (piece->second->getColor() ? "Black" : "White") << endl;
             set<int> possibleMoves = piece->second->getMoves(board);
-            // cout << "Moves: ";
-            // for (auto &moves : possibleMoves) {
-            //     cout << moves << " ";
-            // }
-            // cout << endl;
-            // if (piece->second->getPiece() != "King" && !possibleMoves.empty()) {
-            //     return false;
-            // }
-            if (piece->second->getPiece() != "King") {
-                cout << "piece: " << piece->second->getPiece() << endl;
-                if (!possibleMoves.empty()) {
-                    cout << "possibleMoves not empty" << endl;
-                    cout << "Moves: ";
-                    for (auto &moves : possibleMoves) {
-                        cout << moves << " ";
-                    }
-                    cout << endl;
-                }
+            if (piece->second->getPiece() != "King" && !possibleMoves.empty()) {
+                return false;
             }
             for (set<int>::iterator pieceMove = possibleMoves.begin(); pieceMove != possibleMoves.end(); ++pieceMove) {
-                // cout << "pieceMove: " << *pieceMove << endl;
                 PieceIterator squareToMoveTo = board.find(*pieceMove);
-                int originalLocOfPiece = piece->second->getPosition();
-                int newLocOfPiece = *pieceMove;
-                int pieceTakenLoc = newLocOfPiece;
+                int originLoc = piece->second->getPosition();
+                int newLoc = *pieceMove;
+                int pieceTakenLoc = newLoc;
                 string pieceMoved = piece->second->getPiece();
                 string pieceTaken = "";
                 bool isPieceTake = squareToMoveTo != board.end() && squareToMoveTo->second->getColor() != color;
-                moveDo(originalLocOfPiece, newLocOfPiece, pieceMoved, isPieceTake, pieceTakenLoc, pieceTaken, color);
-                // cout << "after moveDo printing board" << endl;
-                // printPieces();
-                if (!inCheck(color)) {
-                    moveUndo(originalLocOfPiece, newLocOfPiece, pieceMoved, pieceTakenLoc, pieceTaken, color);
-                    // cout << "king is not checkmated" << endl;
+                moveDo(originLoc, newLoc, pieceMoved, isPieceTake, pieceTakenLoc, pieceTaken, color);
+                if (!isCheck(color)) {
+                    moveUndo(originLoc, newLoc, pieceMoved, pieceTakenLoc, pieceTaken, color);
                     return false;
                 }
-                // cout << "king is still in check" << endl;
-                // cout << "pieceTaken: " << pieceTaken << endl;
-                // cout << "pieceTakenLoc: " << pieceTakenLoc << endl;
-                piece = moveUndo(originalLocOfPiece, newLocOfPiece, pieceMoved, pieceTakenLoc, pieceTaken, color);
-                // printPieces();
-                // cout << "undid move" << endl;
+                piece = moveUndo(originLoc, newLoc, pieceMoved, pieceTakenLoc, pieceTaken, color);
             }
         }
     }
-    // cout << "king is checkmated" << endl;
     return true;
 }
 
