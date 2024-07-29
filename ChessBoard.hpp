@@ -31,9 +31,12 @@ private:
     bool isDraw(Color color);
     bool inCheck(Color color);
     bool inCheckMate(Color color);
-    string serializeBoard();
-    size_t hashBoard(string gameState);
+    string serializeBoardHistory();
+    int serializeFiftyMoveRule();
+    size_t hashBoardHistory(string gameState);
+    size_t hashFiftyMoveRule(int gameState);
     bool isThreeFold(size_t currentGameState);
+    bool isFiftyMoveRule(size_t currentHashState);
     bool inStalemate(Color color);
     bool ischeckMateImpossible();
 
@@ -43,5 +46,6 @@ private:
     map<int,unique_ptr<ChessPiece>> board;
     map<string,int> grid;
     unordered_map<size_t,int> boardHistory;
+    pair<size_t,int> fiftyMoveRule;
 };
 #endif

@@ -7,46 +7,50 @@ ChessBoard::ChessBoard() {
     whiteLongCastle = true;
     blackShortCastle = true;
     blackLongCastle = true;
-    // for (int i = 9; i <= 16; ++i) {
-    //     board.insert(pair<int,unique_ptr<ChessPiece>>(i, make_unique<Pawn>(i, 1, WHITE)));
-    // }
-    // for (int i = 49; i <= 56; ++i) {
-    //     board.insert(pair<int,unique_ptr<ChessPiece>>(i, make_unique<Pawn>(i, 1, BLACK)));
-    // }
-    // // test piece
-    // // board.insert(pair<int,unique_ptr<ChessPiece>>(28, make_unique<Pawn>(28, 1, BLACK)));
-    // // board.insert(pair<int,unique_ptr<ChessPiece>>(29, make_unique<Rook>(29, 5, BLACK)));
+    for (int i = 9; i <= 16; ++i) {
+        board.insert(pair<int,unique_ptr<ChessPiece>>(i, make_unique<Pawn>(i, 1, WHITE)));
+    }
+    for (int i = 49; i <= 56; ++i) {
+        board.insert(pair<int,unique_ptr<ChessPiece>>(i, make_unique<Pawn>(i, 1, BLACK)));
+    }
+    // test piece
+    // board.insert(pair<int,unique_ptr<ChessPiece>>(28, make_unique<Pawn>(28, 1, BLACK)));
+    // board.insert(pair<int,unique_ptr<ChessPiece>>(29, make_unique<Rook>(29, 5, BLACK)));
 
-    // board.insert(pair<int,unique_ptr<ChessPiece>>(1, make_unique<Rook>(1, 5, WHITE)));
-    // board.insert(pair<int,unique_ptr<ChessPiece>>(2, make_unique<Knight>(2, 3, WHITE)));
-    // board.insert(pair<int,unique_ptr<ChessPiece>>(3, make_unique<Bishop>(3, 3, WHITE)));
-    // board.insert(pair<int,unique_ptr<ChessPiece>>(4, make_unique<Queen>(4, 9, WHITE)));
-    // board.insert(pair<int,unique_ptr<ChessPiece>>(5, make_unique<King>(5, 10, WHITE)));
-    // board.insert(pair<int,unique_ptr<ChessPiece>>(6, make_unique<Bishop>(6, 3, WHITE)));
-    // board.insert(pair<int,unique_ptr<ChessPiece>>(7, make_unique<Knight>(7, 3, WHITE)));
-    // board.insert(pair<int,unique_ptr<ChessPiece>>(8, make_unique<Rook>(8, 5, WHITE)));
+    board.insert(pair<int,unique_ptr<ChessPiece>>(1, make_unique<Rook>(1, 5, WHITE)));
+    board.insert(pair<int,unique_ptr<ChessPiece>>(2, make_unique<Knight>(2, 3, WHITE)));
+    board.insert(pair<int,unique_ptr<ChessPiece>>(3, make_unique<Bishop>(3, 3, WHITE)));
+    board.insert(pair<int,unique_ptr<ChessPiece>>(4, make_unique<Queen>(4, 9, WHITE)));
+    board.insert(pair<int,unique_ptr<ChessPiece>>(5, make_unique<King>(5, 10, WHITE)));
+    board.insert(pair<int,unique_ptr<ChessPiece>>(6, make_unique<Bishop>(6, 3, WHITE)));
+    board.insert(pair<int,unique_ptr<ChessPiece>>(7, make_unique<Knight>(7, 3, WHITE)));
+    board.insert(pair<int,unique_ptr<ChessPiece>>(8, make_unique<Rook>(8, 5, WHITE)));
 
-    // board.insert(pair<int,unique_ptr<ChessPiece>>(57, make_unique<Rook>(57, 5, BLACK)));
-    // board.insert(pair<int,unique_ptr<ChessPiece>>(58, make_unique<Knight>(58, 3, BLACK)));
-    // board.insert(pair<int,unique_ptr<ChessPiece>>(59, make_unique<Bishop>(59, 3, BLACK)));
-    // board.insert(pair<int,unique_ptr<ChessPiece>>(60, make_unique<Queen>(60, 9, BLACK)));
-    // board.insert(pair<int,unique_ptr<ChessPiece>>(61, make_unique<King>(61, 10, BLACK)));
-    // board.insert(pair<int,unique_ptr<ChessPiece>>(62, make_unique<Bishop>(62, 3, BLACK)));
-    // board.insert(pair<int,unique_ptr<ChessPiece>>(63, make_unique<Knight>(63, 3, BLACK)));
-    // board.insert(pair<int,unique_ptr<ChessPiece>>(64, make_unique<Rook>(64, 5, BLACK)));
+    board.insert(pair<int,unique_ptr<ChessPiece>>(57, make_unique<Rook>(57, 5, BLACK)));
+    board.insert(pair<int,unique_ptr<ChessPiece>>(58, make_unique<Knight>(58, 3, BLACK)));
+    board.insert(pair<int,unique_ptr<ChessPiece>>(59, make_unique<Bishop>(59, 3, BLACK)));
+    board.insert(pair<int,unique_ptr<ChessPiece>>(60, make_unique<Queen>(60, 9, BLACK)));
+    board.insert(pair<int,unique_ptr<ChessPiece>>(61, make_unique<King>(61, 10, BLACK)));
+    board.insert(pair<int,unique_ptr<ChessPiece>>(62, make_unique<Bishop>(62, 3, BLACK)));
+    board.insert(pair<int,unique_ptr<ChessPiece>>(63, make_unique<Knight>(63, 3, BLACK)));
+    board.insert(pair<int,unique_ptr<ChessPiece>>(64, make_unique<Rook>(64, 5, BLACK)));
 
     // test pieces
-    board.insert(pair<int,unique_ptr<ChessPiece>>(57, make_unique<King>(57, 10, BLACK)));
+    // board.insert(pair<int,unique_ptr<ChessPiece>>(57, make_unique<King>(57, 10, BLACK)));
     // board.insert(pair<int,unique_ptr<ChessPiece>>(56, make_unique<Queen>(56, 9, WHITE)));
-    board.insert(pair<int,unique_ptr<ChessPiece>>(1, make_unique<King>(1, 10, WHITE)));
+    // board.insert(pair<int,unique_ptr<ChessPiece>>(1, make_unique<King>(1, 10, WHITE)));
     // board.insert(pair<int,unique_ptr<ChessPiece>>(32, make_unique<Pawn>(32, 1, WHITE)));
     // board.insert(pair<int,unique_ptr<ChessPiece>>(30, make_unique<Pawn>(30, 1, WHITE)));
     // board.insert(pair<int,unique_ptr<ChessPiece>>(38, make_unique<Pawn>(38, 1, BLACK)));
     // board.insert(pair<int,unique_ptr<ChessPiece>>(40, make_unique<Pawn>(40, 1, BLACK)));
 
-    string boardState = serializeBoard();
-    size_t currentHashState = hashBoard(boardState);
+    string boardState = serializeBoardHistory();
+    size_t currentHashState = hashBoardHistory(boardState);
     boardHistory[currentHashState]++;
+
+    int fiftyMoveRuleState = serializeFiftyMoveRule();
+    size_t fiftyMoveRuleHash = hashFiftyMoveRule(fiftyMoveRuleState);
+    fiftyMoveRule.first = fiftyMoveRuleHash;
 
     for (int i = 1; i <= 8; ++i) {
         for (int j = 1; j <= 8; ++j) {
@@ -69,7 +73,6 @@ void ChessBoard::printPieces() {
 
 // Left to implement
 // * 50 move rule A player can claim a draw if no capture or pawn move has been made in the last fifty moves. 
-// * Checkmate is impossible
 
 bool ChessBoard::movePiece(string move, Color color) {
     map<char,string> promotionPieces {{'K',"Knight"},{'Q',"Queen"},{'R',"Rook"},{'B',"Bishop"}};
@@ -147,6 +150,7 @@ bool ChessBoard::movePiece(string move, Color color) {
             } else if (isDraw(color)) {
                 draw = true;
             }
+            cout << "fiftyMoveRule count = " << fiftyMoveRule.second << endl;
             return true;
         }
     }
@@ -474,23 +478,43 @@ bool ChessBoard::isPawnPromotion(string pieceType, string move, Color color) {
 }
 
 bool ChessBoard::isDraw(Color color) {
-    string boardState = serializeBoard();
-    size_t currentHashState = hashBoard(boardState);
-    if (isThreeFold(currentHashState)) {
+    string boardStateStr = serializeBoardHistory();
+    int boardStateInt = serializeFiftyMoveRule();
+    size_t currentHashHistory = hashBoardHistory(boardStateStr);
+    size_t currentHashFiftyMoveRule = hashFiftyMoveRule(boardStateInt);
+    if (isThreeFold(currentHashHistory)) {
         return true;
     } else {
-        boardHistory[currentHashState]++;
+        boardHistory[currentHashHistory]++;
+    }
+    if (isFiftyMoveRule(currentHashFiftyMoveRule)) {
+        cout << "fifty move draw" << endl;
+        return true;
     }
     if (inStalemate(color == WHITE ? BLACK : WHITE)) {
         return true;
     }
     if (ischeckMateImpossible()) {
+        cout << "checkmate impossible" << endl;
         return true;
     }
     return false;
 }
 
-string ChessBoard::serializeBoard() {
+int ChessBoard::serializeFiftyMoveRule() {
+    int gameState;
+
+    for (PieceIterator piece = board.begin(); piece != board.end(); ++piece) {
+        gameState += hash<string>{}(piece->second->getPiece());
+        gameState += piece->second->getValue();
+        if (piece->second->getPiece() == "Pawn") {
+            gameState += piece->second->getPosition();
+        }
+    }
+    return gameState;
+}
+
+string ChessBoard::serializeBoardHistory() {
     string gameState;
 
     for (PieceIterator piece = board.begin(); piece != board.end(); ++piece) {
@@ -504,13 +528,31 @@ string ChessBoard::serializeBoard() {
     return gameState;
 }
 
-size_t ChessBoard::hashBoard(string gameState) {
+size_t ChessBoard::hashBoardHistory(string gameState) {
     return hash<string>{}(gameState);
+}
+
+size_t ChessBoard::hashFiftyMoveRule(int gameState) {
+    return hash<int>{}(gameState);
 }
 
 bool ChessBoard::isThreeFold(size_t currentHashState) {
     unordered_map<size_t,int>::iterator iter = boardHistory.find(currentHashState);
     return (iter != boardHistory.end() && iter->second >= 2);
+}
+
+bool ChessBoard::isFiftyMoveRule(size_t currentHashState) {
+    // cout << "fiftyMoveRule count = " << fiftyMoveRule.second << endl;
+    if (currentHashState == fiftyMoveRule.first) {
+        fiftyMoveRule.second++;
+        if (fiftyMoveRule.second >= 10) {
+            return true;
+        }
+    } else {
+        fiftyMoveRule.second = 0;
+        fiftyMoveRule.first = currentHashState;
+    }
+    return false;
 }
 
 bool ChessBoard::inStalemate(Color color) {
@@ -613,4 +655,5 @@ bool ChessBoard::ischeckMateImpossible() {
             return true;
         }
     }
+    return false;
 }
