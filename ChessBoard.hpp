@@ -37,7 +37,7 @@ private:
     bool isThreeFold(size_t currentGameState);
     bool isFiftyMoveRule(size_t currentHashState);
     bool isStalemate(Color color);
-    bool ischeckMateImpossible();
+    bool isCheckMateImpossible();
 
     bool whiteShortCastle, whiteLongCastle, blackShortCastle, blackLongCastle;
     bool gameOver;

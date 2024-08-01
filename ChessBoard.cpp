@@ -15,6 +15,7 @@ ChessBoard::ChessBoard() {
         board.insert(pair<int,unique_ptr<ChessPiece>>(i, make_unique<Pawn>(i, 1, BLACK)));
     }
 
+    // is there a way to reduce this code
     board.insert(pair<int,unique_ptr<ChessPiece>>(1, make_unique<Rook>(1, 5, WHITE)));
     board.insert(pair<int,unique_ptr<ChessPiece>>(2, make_unique<Knight>(2, 3, WHITE)));
     board.insert(pair<int,unique_ptr<ChessPiece>>(3, make_unique<Bishop>(3, 3, WHITE)));
@@ -78,7 +79,7 @@ void ChessBoard::printPieces() {
 }
 
 bool ChessBoard::performMove(string move, Color color) {
-    map<char,string> promotionPieces {{'K',"Knight"},{'Q',"Queen"},{'R',"Rook"},{'B',"Bishop"}};
+    map<char,string> promotionPieces {{'N',"Knight"},{'Q',"Queen"},{'R',"Rook"},{'B',"Bishop"}};
     string promotionType;
     if (move.size() < 2 && move.size() > 7) {
         return false;
@@ -90,12 +91,13 @@ bool ChessBoard::performMove(string move, Color color) {
         move.pop_back();
     }
 
-    bool isPromotion = (isupper(move.back())) && (promotionPieces.find(move.back()) != promotionPieces.end()) 
-                        && move.at(move.size() - 2) == '=';
+    bool isPromotion = (isupper(move.back())) && (promotionPieces.find(move.back()) != promotionPieces.end());
     if (isPromotion) {
         promotionType = promotionPieces.at(move.back());
         move.pop_back();
-        move.pop_back();
+        if (move.back() == '=') {
+            move.pop_back();
+        }
     }
 
     int countXs = count(move.begin(), move.end(), 'x');
@@ -105,7 +107,14 @@ bool ChessBoard::performMove(string move, Color color) {
         move.erase(move.find('x'), 1);
     }
 
+    if (move == "0-0") {
+        move = "O-O";
+    } else if (move == "0-0-0") {
+        move = "O-O-O";
+    }
+    // castle
     if ((move == "O-O" || move == "O-O-O") && clearToCastle(move, color)) {
+        // cout << "clearToCastle is true" << endl;
         int pieceTakenLoc = 0;
         string pieceTaken = "";
         int kingLoc = (color == WHITE ? 5 : 61);
@@ -115,14 +124,23 @@ bool ChessBoard::performMove(string move, Color color) {
         } else if (color == BLACK) {
             rookLoc = (move == "O-O" ? 64 : 57);
         }
-        return castle(move, kingLoc, rookLoc, color);
+        bool ableToCastle = castle(move, kingLoc, rookLoc, color);
+        if (ableToCastle) {
+            if (isCheckMate(color == WHITE ? BLACK : WHITE)) {
+                // cout << "found checkmate" << endl;
+                gameOver = true;
+            } else if (isDraw(color)) {
+                draw = true;
+            }
+        }
+        return ableToCastle;
     }
 
+    // regular move
     string locOfMove = move.substr(move.size() - 2, 2);
     bool isMoveOnGrid = gridStoi.find(locOfMove) != gridStoi.end();
     PieceIterator selectedPiece = board.end(), squareToMoveTo = board.end();
     if (isMoveOnGrid) {
-        // cout << "move is on grid" << endl;
         selectedPiece = findPiece(move, color);
         squareToMoveTo = board.find(gridStoi.at(locOfMove));
         if (selectedPiece != board.end()) {
@@ -140,12 +158,10 @@ bool ChessBoard::performMove(string move, Color color) {
             checkEnPassant(originLoc, newLoc, color);
             checkCastling(pieceMoved, pieceTaken, originLoc, newLoc, color);
             if (isCheckMate(color == WHITE ? BLACK : WHITE)) {
-                // cout << "found checkmate" << endl;
                 gameOver = true;
             } else if (isDraw(color)) {
                 draw = true;
             }
-            // cout << "fiftyMoveRule count = " << fiftyMoveRule.second << endl;
             return true;
         }
     }
@@ -153,8 +169,10 @@ bool ChessBoard::performMove(string move, Color color) {
     return false;
 }
 
+// There has to be a way to reduce the code
 void ChessBoard::moveDo(int originLoc, int newLoc, string pieceMoved, bool isPieceTake, int& pieceTakenLoc, string& pieceTaken, Color color) {
     PieceIterator selectedPiece = board.find(originLoc), squareToMoveTo = board.find(newLoc);
+    // cout << "deleting selectedPiece: " << selectedPiece->second->getPosition() << endl;
     if (isPieceTake) {
         if (pieceMoved == "Pawn" && squareToMoveTo == board.end()) {
             PieceIterator pawnToTake = board.end();
@@ -184,9 +202,11 @@ void ChessBoard::moveDo(int originLoc, int newLoc, string pieceMoved, bool isPie
     } else if (pieceMoved == "King") {
         board.insert(pair<int,unique_ptr<ChessPiece>>(newLoc, make_unique<King>(newLoc, 10, color)));
     }
+    // cout << "deleting selectedPiece: " << selectedPiece->second->getPosition() << endl;
     board.erase(selectedPiece);
 }
 
+// There has to be a way to reduce the code
 PieceIterator ChessBoard::moveUndo(int originLoc, int newLoc, string pieceMoved, int pieceTakenLoc, string pieceTaken, Color color) {
     // cout << "in moveUndo" << endl;
     // cout << "pieceTaken: " << pieceTaken << endl;
@@ -246,7 +266,6 @@ PieceIterator ChessBoard::findPiece(string move, Color color) {
             //     cout << moves << " ";
             // }
             // cout << endl;
-            // cout << "determining if move is in set of possibleMoves" << endl;
             possibleMoves.clear();
             possibleMoves = piece->second->getMoves(board);
             if (name == "looking for king" && possibleMoves.find(gridStoi.at(locOfMove)) != possibleMoves.end()) {
@@ -255,24 +274,32 @@ PieceIterator ChessBoard::findPiece(string move, Color color) {
                 break;
             }
             if (possibleMoves.find(gridStoi.at(locOfMove)) != possibleMoves.end()) {
-                if (move.size() == 2 && isCorrectPiece) {
-                    // cout << "In if case move.size() == 2\n" << name << " == " << piece->second->getPiece() << endl;
+                if (move.size() == 2 && isCorrectPiece) { // Pawn push
                     selectedPiece = piece;
                     break;
-                } else if (move.size() == 3 && isCorrectPiece) {
-                    // cout << "In if case move.size() == 3\n" << name << " == " << piece->second->getPiece() << endl;
-                    selectedPiece = piece;
+                } else if (move.size() == 3 && isCorrectPiece) { // Pawn take or big piece move or take
+                    if (piece->second->getPiece() == "Pawn") { // If two pawns can take the same piece get the right pawn
+                        if (gridItos.at(piece->second->getPosition())[0] == move[0]) {
+                            selectedPiece = piece;
+                        } else {
+                            continue;
+                        }
+                    } else {
+                        selectedPiece = piece;
+                    }
                     break;
-                } else if (move.size() == 4) { // two of the same pieces can move to the same square
-                    int pieceLoc = move[1] - '0';
-                    if (pieceLoc <= 8) { // knight or rook is on the same row
+                } else if (move.size() == 4) { // two of the same pieces can move/take to the same square
+                    // cout << "size 4 move detected" << endl;
+                    int pieceLoc = move[1] - '\0';
+                    if (pieceLoc >= 48 && pieceLoc <= 56) { // piece is on the same row
+                        pieceLoc -= 48;
                         int findRow = piece->second->getPosition() / 8;
                         (piece->second->getPosition() % 8 == 0) ? findRow : ++findRow;  
                         if (pieceLoc == findRow && isCorrectPiece) {
                             selectedPiece = piece;
                             break;
                         }
-                    } else if (pieceLoc >= 97 && pieceLoc <= 104) { // knight or rook is on the same column
+                    } else if (pieceLoc >= 97 && pieceLoc <= 104) { // piece is on the same column
                         int findCol = piece->second->getPosition() % 8;
                         pieceLoc %= 8;
                         if (pieceLoc == findCol && isCorrectPiece) {
@@ -291,10 +318,10 @@ PieceIterator ChessBoard::findPiece(string move, Color color) {
         }
     }
 
-    // cout << "found piece to move at square: " << selectedPiece->second->getPosition() << endl;
     return selectedPiece;
 }
 
+// can use gridItos to find locOfKing
 bool ChessBoard::isCheck(Color color) {
     PieceIterator kingIter = board.end();
     PieceIterator selectedPiece = board.end();
@@ -338,7 +365,6 @@ bool ChessBoard::isCheckMate(Color color) {
             // }
             // cout << endl;
             for (set<int>::iterator pieceMove = possibleMoves.begin(); pieceMove != possibleMoves.end(); ++pieceMove) {
-                // cout << "pieceMove: " << *pieceMove << endl;
                 PieceIterator squareToMoveTo = board.find(*pieceMove);
                 int originLoc = piece->second->getPosition();
                 int newLoc = *pieceMove;
@@ -347,19 +373,13 @@ bool ChessBoard::isCheckMate(Color color) {
                 string pieceTaken = "";
                 bool isPieceTake = squareToMoveTo != board.end() && squareToMoveTo->second->getColor() != color;
                 moveDo(originLoc, newLoc, pieceMoved, isPieceTake, pieceTakenLoc, pieceTaken, color);
-                // cout << "after moveDo printing board" << endl;
-                // printPieces();
                 if (!isCheck(color)) {
                     moveUndo(originLoc, newLoc, pieceMoved, pieceTakenLoc, pieceTaken, color);
                     // cout << "king is not checkmated" << endl;
                     return false;
                 }
                 // cout << "king is still in check" << endl;
-                // cout << "pieceTaken: " << pieceTaken << endl;
-                // cout << "pieceTakenLoc: " << pieceTakenLoc << endl;
                 piece = moveUndo(originLoc, newLoc, pieceMoved, pieceTakenLoc, pieceTaken, color);
-                // printPieces();
-                // cout << "undid move" << endl;
             }
         }
     }
@@ -484,10 +504,11 @@ bool ChessBoard::isDraw(Color color) {
         // cout << "fifty move draw" << endl;
         return true;
     }
+    // cout << "Testing if " << (color == WHITE ? "BLACK" : "WHITE") << " is in stalemate" << endl;
     if (isStalemate(color == WHITE ? BLACK : WHITE)) {
         return true;
     }
-    if (ischeckMateImpossible()) {
+    if (isCheckMateImpossible()) {
         // cout << "checkmate impossible" << endl;
         return true;
     }
@@ -548,6 +569,7 @@ bool ChessBoard::isFiftyMoveRule(size_t currentHashState) {
 }
 
 bool ChessBoard::isStalemate(Color color) {
+    // cout << "In isStalemate" << endl;
     if (isCheck(color)) {
         return false;
     }
@@ -556,9 +578,6 @@ bool ChessBoard::isStalemate(Color color) {
     for (PieceIterator piece = board.begin(); piece != board.end(); ++piece) {
         if (piece->second->getColor() == color) {
             set<int> possibleMoves = piece->second->getMoves(board);
-            if (piece->second->getPiece() != "King" && !possibleMoves.empty()) {
-                return false;
-            }
             for (set<int>::iterator pieceMove = possibleMoves.begin(); pieceMove != possibleMoves.end(); ++pieceMove) {
                 PieceIterator squareToMoveTo = board.find(*pieceMove);
                 int originLoc = piece->second->getPosition();
@@ -570,6 +589,7 @@ bool ChessBoard::isStalemate(Color color) {
                 moveDo(originLoc, newLoc, pieceMoved, isPieceTake, pieceTakenLoc, pieceTaken, color);
                 if (!isCheck(color)) {
                     moveUndo(originLoc, newLoc, pieceMoved, pieceTakenLoc, pieceTaken, color);
+                    // cout << "Not in stalemate" << endl;
                     return false;
                 }
                 piece = moveUndo(originLoc, newLoc, pieceMoved, pieceTakenLoc, pieceTaken, color);
@@ -579,7 +599,8 @@ bool ChessBoard::isStalemate(Color color) {
     return true;
 }
 
-bool ChessBoard::ischeckMateImpossible() {
+// Has to be a way to reduce this
+bool ChessBoard::isCheckMateImpossible() {
     map<string,int> whitePieceCount = {{"Pawn",0},{"Rook",0},{"Knight",0},{"Bishop",0},{"Queen",0},{"King",0}};
     map<string,int> blackPieceCount = whitePieceCount;
     for (PieceIterator piece = board.begin(); piece != board.end(); ++piece) {
@@ -616,6 +637,66 @@ bool ChessBoard::ischeckMateImpossible() {
             whitePieceCount["Bishop"] == 0 && whitePieceCount["Queen"] == 0 &&
             blackPieceCount["Pawn"] == 0 && blackPieceCount["Rook"] == 0 && blackPieceCount["Knight"] == 0 && 
             blackPieceCount["Bishop"] == 0 && blackPieceCount["Queen"] == 0) {
+            return true;
+        }
+        // Black has no pieces left, and white can potentially win
+        if (blackPieceCount["Pawn"] == 0 && blackPieceCount["Rook"] == 0 && blackPieceCount["Knight"] == 0 && 
+            blackPieceCount["Bishop"] == 0 && blackPieceCount["Queen"] == 0 &&
+            whitePieceCount["Pawn"] == 0 && whitePieceCount["Rook"] == 0 && whitePieceCount["Knight"] == 0 && 
+            whitePieceCount["Bishop"] == 0 && whitePieceCount["Queen"] == 0) {
+            return true;
+        }
+        // Black has a King and a Bishop, and white has only a King
+        if (blackPieceCount["Bishop"] == 1 && blackPieceCount["Pawn"] == 0 && blackPieceCount["Rook"] == 0 && 
+            blackPieceCount["Knight"] == 0 && blackPieceCount["Queen"] == 0 &&
+            whitePieceCount["Pawn"] == 0 && whitePieceCount["Rook"] == 0 && whitePieceCount["Knight"] == 0 && 
+            whitePieceCount["Bishop"] == 0 && whitePieceCount["Queen"] == 0) {
+            return true;
+        }
+        // Black has a King and a Knight, and white has only a King
+        if (blackPieceCount["Knight"] == 1 && blackPieceCount["Pawn"] == 0 && blackPieceCount["Rook"] == 0 && 
+            blackPieceCount["Bishop"] == 0 && blackPieceCount["Queen"] == 0 &&
+            whitePieceCount["Pawn"] == 0 && whitePieceCount["Rook"] == 0 && whitePieceCount["Knight"] == 0 && 
+            whitePieceCount["Bishop"] == 0 && whitePieceCount["Queen"] == 0) {
+            return true;
+        }
+        // Black has a King and two Knights, and white has only a King
+        if (blackPieceCount["Knight"] == 2 && blackPieceCount["Pawn"] == 0 && blackPieceCount["Rook"] == 0 && 
+            blackPieceCount["Bishop"] == 0 && blackPieceCount["Queen"] == 0 &&
+            whitePieceCount["Pawn"] == 0 && whitePieceCount["Rook"] == 0 && whitePieceCount["Knight"] == 0 && 
+            whitePieceCount["Bishop"] == 0 && whitePieceCount["Queen"] == 0) {
+            return true;
+        }
+        // only two bishops
+        if (whitePieceCount["Bishop"] == 1 && blackPieceCount["Bishop"] == 1 &&
+            whitePieceCount["Pawn"] == 0 && whitePieceCount["Rook"] == 0 && whitePieceCount["Knight"] == 0 &&
+            whitePieceCount["Queen"] == 0 &&
+            blackPieceCount["Pawn"] == 0 && blackPieceCount["Rook"] == 0 && blackPieceCount["Knight"] == 0 &&
+            blackPieceCount["Queen"] == 0) {
+            return true;
+        }
+        // only two knights
+        if (whitePieceCount["Knight"] == 1 && blackPieceCount["Knight"] == 1 &&
+            whitePieceCount["Pawn"] == 0 && whitePieceCount["Rook"] == 0 && whitePieceCount["Bishop"] == 0 &&
+            whitePieceCount["Queen"] == 0 &&
+            blackPieceCount["Pawn"] == 0 && blackPieceCount["Rook"] == 0 && blackPieceCount["Bishop"] == 0 &&
+            blackPieceCount["Queen"] == 0) {
+            return true;
+        }
+        // one white bishop and one black knight
+        if (whitePieceCount["Knight"] == 0 && blackPieceCount["Knight"] == 1 &&
+            whitePieceCount["Pawn"] == 0 && whitePieceCount["Rook"] == 0 && whitePieceCount["Bishop"] == 1 &&
+            whitePieceCount["Queen"] == 0 &&
+            blackPieceCount["Pawn"] == 0 && blackPieceCount["Rook"] == 0 && blackPieceCount["Bishop"] == 0 &&
+            blackPieceCount["Queen"] == 0) {
+            return true;
+        }
+        // one white knight and one black bishop
+        if (whitePieceCount["Knight"] == 1 && blackPieceCount["Knight"] == 0 &&
+            whitePieceCount["Pawn"] == 0 && whitePieceCount["Rook"] == 0 && whitePieceCount["Bishop"] == 0 &&
+            whitePieceCount["Queen"] == 0 &&
+            blackPieceCount["Pawn"] == 0 && blackPieceCount["Rook"] == 0 && blackPieceCount["Bishop"] == 1 &&
+            blackPieceCount["Queen"] == 0) {
             return true;
         }
     }

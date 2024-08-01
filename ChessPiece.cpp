@@ -21,14 +21,17 @@ set<int> Pawn::getMoves(map<int,unique_ptr<ChessPiece>>& board) {
     }
 
     // Check diagonal captures and en passant
+    Direction dir;
     if (position % 8 != 0) { // Not on column h
-        if (canPawnTakeDiag(board, RIGHT) || canPawnTakeEnPassant(board, RIGHT)) {
-            possibleMoves.insert(position + (9 * turn));
+        dir = (color == WHITE ? RIGHT : LEFT);
+        if (canPawnTakeDiag(board, dir) || canPawnTakeEnPassant(board, dir)) {
+            possibleMoves.insert(position + ((color == WHITE ? 9 : 7) * turn));
         }
     }
     if (position % 8 != 1) { // Not on column a
-        if (canPawnTakeDiag(board, LEFT) || canPawnTakeEnPassant(board, LEFT)) {
-            possibleMoves.insert(position + (7 * turn));
+        dir = (color == WHITE ? LEFT : RIGHT);
+        if (canPawnTakeDiag(board, dir) || canPawnTakeEnPassant(board, dir)) {
+            possibleMoves.insert(position + ((color == WHITE ? 7 : 9) * turn));
         }
     }
 

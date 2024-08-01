@@ -2,7 +2,9 @@
 #define CHESSPEICE_HPP
 #include <set>
 #include <map>
+#include <string>
 #include <memory>
+#include <iostream>
 
 using namespace std;
 
@@ -21,7 +23,7 @@ public:
     Color getColor() {return color;};
     int getValue() {return value;};
     static int getEnPassant() {return enPassant;};
-    static int setEnPassant(int location) {enPassant = location;};
+    static void setEnPassant(int location) {enPassant = location;};
 protected:
     int position;
     const int value;
