@@ -14,10 +14,10 @@ TEST(mainTest, TestFullGame) {
     ASSERT_EQ(ifs.is_open(), true) << "failed to open file";
 
     cout << "Printing games" << endl;
-    // for (int i = 0; i < 8; ++i) {
-    //     cout << "i = " << i << endl;
-    //     getline(ifs, curGame);
-        while (getline(ifs, curGame)) {
+    for (int i = 0; i < 8; ++i) {
+        cout << "i = " << i << endl;
+        getline(ifs, curGame);
+        // while (getline(ifs, curGame)) {
             if (curGame[0] == '1') {
                 // cout << curGame << endl;
                 if (curGame.find("forfeits") != string::npos || curGame.find("resigns") != string::npos ||
@@ -44,8 +44,8 @@ TEST(mainTest, TestFullGame) {
                 istringstream curGameStream(curGame);
                 EXPECT_EQ(playChess(curGameStream), winner) << "failed chess game: ";
             }
-        }
-    // }
+        // }
+    }
 
     ifs.close();
     ASSERT_EQ(ifs.is_open(), false) << "failed to close file";

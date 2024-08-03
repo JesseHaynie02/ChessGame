@@ -11,7 +11,7 @@ Winner playChess(istream& input) {
 
         // determine if move is valid
         // cout << "move = " << move << endl;
-        // cout << move << endl;
+        cout << move << endl;
         if (!board.performMove(move, turn)) {
             cout << "Please enter a valid move" << endl;
             continue;
