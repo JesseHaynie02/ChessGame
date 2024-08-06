@@ -27,9 +27,13 @@ set(Sources
     ChessPiece.cpp
     ChessBoard.cpp
     ChessGame.cpp
+    main.cpp
 )
 
 add_library(Chess STATIC ${Sources} ${Headers})
+
+add_executable(main ${Sources})
+target_link_libraries(main Chess)
 
 # Add subdirectory for tests
 add_subdirectory(test)

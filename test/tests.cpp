@@ -10,7 +10,7 @@ TEST(mainTest, TestFullGame) {
     Winner winner;
     string curGame, decision;
     regex patternOne(R"(\d+\.\s*)");
-    ifs.open("test/testGames.txt", ifstream::in);
+    ifs.open("../../test/testGames.txt", ifstream::in);
     ASSERT_EQ(ifs.is_open(), true) << "failed to open file";
 
     cout << "Printing games" << endl;
