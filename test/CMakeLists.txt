@@ -18,6 +18,10 @@ target_include_directories(Chess
     PUBLIC ${CMAKE_SOURCE_DIR}/include
 )
 
+set_target_properties(tests PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin"
+)
+
 # Register the test with CTest
 add_test(
     NAME ${This}

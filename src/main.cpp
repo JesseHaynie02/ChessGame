@@ -1,7 +1,8 @@
 #include "ChessGame.hpp"
+#include "ChessGraphic.hpp"
 
-int main() {
-    // code to test code coverage
+int main(int argc, char* argv[]) {
+    // // code to test code coverage
     // ifstream ifs;
     // string curGame;
     // regex patternOne(R"(\d+\.\s*)");
