@@ -14,6 +14,9 @@ target_link_libraries(${This} PRIVATE
     gtest_main
     Chess
 )
+target_include_directories(Chess
+    PUBLIC ${CMAKE_SOURCE_DIR}/include
+)
 
 # Register the test with CTest
 add_test(

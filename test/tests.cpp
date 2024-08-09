@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 #include <fstream>
 #include <regex>
-#include "../ChessGame.hpp"
-#include "../ChessBoard.hpp"
-#include "../ChessPiece.hpp"
+#include "ChessGame.hpp"
+#include "ChessBoard.hpp"
+#include "ChessPiece.hpp"
 
 TEST(mainTest, TestFullGame) {
     ifstream ifs;

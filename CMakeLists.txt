@@ -18,19 +18,17 @@ enable_testing()
 add_subdirectory(googletest)
 
 # Define the main application
-set(Headers
-    ChessPiece.hpp
-    ChessBoard.hpp
-    ChessGame.hpp
-)
 set(Sources
-    ChessPiece.cpp
-    ChessBoard.cpp
-    ChessGame.cpp
-    main.cpp
+    src/ChessPiece.cpp
+    src/ChessBoard.cpp
+    src/ChessGame.cpp
+    src/main.cpp
 )
 
-add_library(Chess STATIC ${Sources} ${Headers})
+add_library(Chess STATIC ${Sources})
+target_include_directories(Chess
+    PUBLIC ${CMAKE_SOURCE_DIR}/include
+)
 
 add_executable(main ${Sources})
 target_link_libraries(main Chess)
