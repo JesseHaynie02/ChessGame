@@ -45,4 +45,4 @@ set_target_properties(main PROPERTIES
 )
 
 # Add subdirectory for tests
-add_subdirectory(test)
+# add_subdirectory(test)

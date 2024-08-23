@@ -2,34 +2,68 @@
 
 Winner playChess(istream& input) {
     cout << "Chess Game" << endl;
+
+    SDL_Window *window = nullptr;
+    SDL_Renderer *renderer = nullptr;
+    vector<boardSquare> squares(64);
+    map<int,unique_ptr<pieceIMG>> pieceIMGs;
+
+    initializeSDL();
+    initWinRen(window, renderer);
+    initializeGraphic(renderer, squares, pieceIMGs);
+
     ChessBoard board;
-    Color turn = WHITE;
+    gameState state;
+    Winner result = ERROR;
 
-    while (!board.getGameOver() && !board.getDraw()) {
-        board.printPieces();
-        string move = getNextMove(turn, input);
+    while (!board.getGameOver() && !board.getDraw() && !state.quit) {
+        // board.printPieces();
+        while (SDL_PollEvent(&state.event)) {
+            switch (state.event.type) {
+                case SDL_QUIT:
+                    state.quit = true;
+                    break;
 
-        // determine if move is valid
-        // cout << "move = " << move << endl;
-        cout << move << endl;
-        if (!board.performMove(move, turn)) {
-            cout << "Please enter a valid move" << endl;
-            continue;
+                case SDL_MOUSEBUTTONDOWN:
+
+                    mouseButtonDown(renderer, board, state, squares, pieceIMGs);
+                    break;
+
+                case SDL_MOUSEBUTTONUP:
+
+                    mouseButtonUp(renderer, board, state, squares, pieceIMGs);
+                    resetState(state);
+                    break;
+
+                case SDL_MOUSEMOTION:
+
+                    mouseMotion(state, squares, pieceIMGs);
+                    break;
+
+                default:
+                    break;
+            }
         }
-
-        if (board.getGameOver()) {
-            cout << "Game Over: " << ((turn == WHITE) ? "White Won" : "Black Won") << endl;
-            return ((turn == WHITE) ? WHITE_WINS : BLACK_WINS);
-        } else if (board.getDraw()) {
-            cout << "Game is a Draw" << endl;
-            return DRAW;
+        refreshGame(renderer, squares, pieceIMGs);
+        map<int,unique_ptr<pieceIMG>>::iterator IMG = pieceIMGs.find(state.selPieceInd);
+        if (IMG != pieceIMGs.end()) {
+            SDL_RenderCopy(renderer, IMG->second->tex, nullptr, &IMG->second->rect);
         }
-
-        turn = (turn == WHITE) ? BLACK : WHITE;
+        SDL_RenderPresent(renderer);
     }
-    return ERROR;
+
+    if (board.getGameOver()) {
+        cout << "Game Over: " << ((state.turn == WHITE) ? "Black Won" : "White Won") << endl;
+        result = ((state.turn == WHITE) ? BLACK_WINS : WHITE_WINS);
+    } else if (board.getDraw()) {
+        cout << "Game is a Draw" << endl;
+        result = DRAW;
+    }
+    destroyGUI(window, renderer, pieceIMGs);
+    return result;
 }
 
+// for command line chess
 string getNextMove(Color color, istream& input) {
     string nextMove;
 

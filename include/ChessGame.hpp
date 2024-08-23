@@ -3,6 +3,7 @@
 #include <fstream> // for test coverage
 #include <regex> // for test coverage
 #include "ChessBoard.hpp"
+#include "ChessGraphic.hpp"
 
 enum Winner {WHITE_WINS, BLACK_WINS, DRAW, ERROR};
 
