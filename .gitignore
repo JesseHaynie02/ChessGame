@@ -1,5 +1,8 @@
 .vscode
 
+bin/*.exe
 *.exe
 
 build/
+
+testGames.txt
