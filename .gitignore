@@ -5,4 +5,4 @@ bin/*.exe
 
 build/
 
-testGames.txt
+test/testGames.txt
